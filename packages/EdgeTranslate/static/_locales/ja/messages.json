@@ -247,6 +247,10 @@
         "message": "Googleページ翻訳",
         "description": "Google翻訳APIで現在のページを翻訳します。"
     },
+    "YoudaoPageTranslate": {
+        "message": "有道ページ翻訳",
+        "description": "有道翻訳のウェブページ翻訳機能で現在のページを翻訳します。"
+    },
     "TranslatePage": {
         "message": "このページを翻訳する",
         "description": "このページをデフォルトのページ翻訳で翻訳します。"
@@ -262,6 +266,10 @@
     "TranslatePageGoogle": {
         "message": "Googleでこのページを翻訳",
         "description": "Google翻訳APIで現在のページを翻訳します。"
+    },
+    "TranslatePageYoudao": {
+        "message": "有道でこのページを翻訳",
+        "description": "有道翻訳のウェブページ翻訳機能で現在のページを翻訳します。"
     },
     "UseGoogleAnalytics": {
         "message": "拡張機能の改善に役立つ統計を提供する",
@@ -374,6 +382,14 @@
     "TencentTranslateShort": {
         "message": "テンセント",
         "description": "テンセント翻訳"
+    },
+    "YoudaoTranslate": {
+        "message": "有道翻訳",
+        "description": "有道翻訳"
+    },
+    "YoudaoTranslateShort": {
+        "message": "有道",
+        "description": "有道翻訳"
     },
     "HybridTranslate": {
         "message": "ブレンド翻訳",
@@ -1306,5 +1322,113 @@
     "Zulu": {
         "message": "Zulu",
         "description": "Zulu"
+    },
+    "DefaultTargetLanguage": {
+        "message": "デフォルト翻訳言語（目標言語）",
+        "description": ""
+    },
+    "UILanguage": {
+        "message": "インターフェース言語 / UI Language",
+        "description": ""
+    },
+    "ApiKeyConfig": {
+        "message": "APIキー設定 (自動保存)",
+        "description": ""
+    },
+    "TencentSecretId": {
+        "message": "Tencent Cloud SecretId",
+        "description": ""
+    },
+    "TencentSecretIdPlaceholder": {
+        "message": "Tencent Cloud SecretIdを入力",
+        "description": ""
+    },
+    "TencentSecretKey": {
+        "message": "Tencent Cloud SecretKey",
+        "description": ""
+    },
+    "TencentSecretKeyPlaceholder": {
+        "message": "Tencent Cloud SecretKeyを入力",
+        "description": ""
+    },
+    "GetApiKey": {
+        "message": "APIキーを取得：",
+        "description": ""
+    },
+    "BaiduAppId": {
+        "message": "Baidu翻訳 APP ID",
+        "description": ""
+    },
+    "BaiduAppIdPlaceholder": {
+        "message": "Baidu翻訳APP IDを入力",
+        "description": ""
+    },
+    "BaiduAppKey": {
+        "message": "Baidu翻訳キー",
+        "description": ""
+    },
+    "BaiduAppKeyPlaceholder": {
+        "message": "Baidu翻訳キーを入力",
+        "description": ""
+    },
+    "GoogleProxyUrl": {
+        "message": "GoogleプロキシURL",
+        "description": ""
+    },
+    "GoogleProxyUrlPlaceholder": {
+        "message": "任意：Google翻訳を有効にするプロキシURL",
+        "description": ""
+    },
+    "GoogleProxyHint": {
+        "message": "空の場合はGoogleをスキップ、他の翻訳に影響なし",
+        "description": ""
+    },
+    "AiModelName": {
+        "message": "名前",
+        "description": ""
+    },
+    "AiApiUrl": {
+        "message": "API URL",
+        "description": ""
+    },
+    "AiApiKey": {
+        "message": "APIキー",
+        "description": ""
+    },
+    "AiModelLabel": {
+        "message": "モデル",
+        "description": ""
+    },
+    "AiModelIndex": {
+        "message": "モデル $1",
+        "description": ""
+    },
+    "AiConfigHint": {
+        "message": "DeepSeek、Groq、OpenAI、SiliconFlowなどOpenAI互換APIに対応",
+        "description": ""
+    },
+    "AddModel": {
+        "message": "+ モデルを追加",
+        "description": ""
+    },
+    "ExportConfig": {
+        "message": "設定をエクスポート",
+        "description": ""
+    },
+    "ImportConfig": {
+        "message": "設定をインポート",
+        "description": ""
+    },
+    "ConfigImported": {
+        "message": "設定がインポートされました。ページを更新してください。",
+        "description": ""
+    },
+    "ImportFailed": {
+        "message": "インポート失敗：JSON形式が無効です",
+        "description": ""
+    },
+    "FreeRegister": {
+        "message": "無料登録：",
+        "description": ""
     }
 }

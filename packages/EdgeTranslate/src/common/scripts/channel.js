@@ -48,7 +48,9 @@ class Channel {
 
                         // We can call the callback only when we really provide the requested service.
                         server(parsed.params, sender).then(
-                            (result) => callback && callback(result)
+                            (result) => { if (callback) callback(result); }
+                        ).catch(
+                            (err) => { if (callback) callback({ error: err?.message || String(err) }); }
                         );
                         return true;
                     }

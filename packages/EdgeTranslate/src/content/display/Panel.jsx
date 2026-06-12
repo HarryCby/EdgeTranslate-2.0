@@ -48,6 +48,9 @@ export default function ResultPanel() {
     const [availableTranslators, setAvailableTranslators] = useState();
     // selected translator
     const [currentTranslator, setCurrentTranslator] = useState();
+    // AI models and selected model
+    const [aiModels, setAIModels] = useState([]);
+    const [selectedAIModel, setSelectedAIModel] = useState("");
     // Control the behavior of highlight part(a placeholder to preview the "fixed" style panel).
     const [highlight, setHighlight] = useState({
         show: false, // whether to show the highlight part
@@ -126,15 +129,25 @@ export default function ResultPanel() {
     useEffect(() => {
         getDisplaySetting();
 
-        getOrSetDefaultSettings(["languageSetting", "DefaultTranslator"], DEFAULT_SETTINGS).then(
+        getOrSetDefaultSettings(["languageSetting", "DefaultTranslator", "AIConfigs"], DEFAULT_SETTINGS).then(
             async (result) => {
-                let languageSetting = result.languageSetting;
-                let availableTranslators = await channel.request("get_available_translators", {
-                    from: languageSetting.sl,
-                    to: languageSetting.tl,
-                });
-                setAvailableTranslators(availableTranslators);
+                const ls = result.languageSetting;
+                const av = await channel.request("get_available_translators", { from: ls.sl, to: ls.tl });
+                setAvailableTranslators(av);
                 setCurrentTranslator(result.DefaultTranslator);
+                // AI models from configs
+                const cfgs = result.AIConfigs || [];
+                const models = cfgs.map((c) => ({
+                    name: c.displayName || c.model || "AI",
+                    model: c.model,
+                    apiUrl: c.apiUrl,
+                    apiKey: c.apiKey,
+                }));
+                setAIModels(models);
+                if (models.length > 0) {
+                    setSelectedAIModel(models[0].model);
+                    window.selectedAIModel = models[0].model;
+                }
             }
         );
 
@@ -150,8 +163,40 @@ export default function ResultPanel() {
 
         channel.on("start_translating", (detail) => {
             if (checkTimestamp(detail.timestamp)) {
-                // cache translation text.
                 window.translateResult.originalText = detail.text;
+                // Capture ~400 chars around selection using range position
+                try {
+                    const sel = window.getSelection();
+                    window._aiContext = "";
+                    if (sel?.rangeCount) {
+                        const r = sel.getRangeAt(0);
+                        const targetNode = r.startContainer;
+                        const targetOffset = r.startOffset;
+                        let el = targetNode;
+                        if (el?.nodeType === 3) el = el.parentElement;
+                        if (el?.closest) {
+                            let found = el.closest("p,li,td,th,blockquote,figcaption,h1,h2,h3,h4,h5,h6");
+                            if (!found) found = el.closest("article,section,main");
+                            if (!found) { const d = el.closest("div"); if (d?.textContent?.length > 50) found = d; }
+                            if (found) {
+                                const walker = document.createTreeWalker(found, NodeFilter.SHOW_TEXT);
+                                let text = "", pos = -1;
+                                while (walker.nextNode()) {
+                                    const node = walker.currentNode;
+                                    if (node === targetNode) pos = text.length + targetOffset;
+                                    text += node.textContent || "";
+                                }
+                                if (pos >= 0) {
+                                    const start = Math.max(0, pos - 200);
+                                    const end = Math.min(text.length, pos + 250);
+                                    window._aiContext = text.substring(start, end).replace(/\s+/g, " ").trim();
+                                } else {
+                                    window._aiContext = text.replace(/\s+/g, " ").trim().substring(0, 500);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) { window._aiContext = ""; }
                 setOpen(true);
                 setContentType("LOADING");
                 setContent(detail);
@@ -598,7 +643,7 @@ export default function ResultPanel() {
                                 <Head ref={headElRef} data-testid="Head">
                                     <SourceOption
                                         role="button"
-                                        title={chrome.i18n.getMessage(`${currentTranslator}Short`)}
+                                        title={window.__i18n(`${currentTranslator}Short`)}
                                         activeKey={currentTranslator}
                                         onSelect={(eventKey) => {
                                             setCurrentTranslator(eventKey);
@@ -622,14 +667,29 @@ export default function ResultPanel() {
                                                 key={translator}
                                                 eventKey={translator}
                                             >
-                                                {chrome.i18n.getMessage(translator)}
+                                                {window.__i18n(translator)}
                                             </Dropdown.Item>
                                         ))}
                                     </SourceOption>
+                                    <AISource
+                                        title="AI"
+                                        activeKey={selectedAIModel}
+                                        onSelect={(model) => {
+                                            setSelectedAIModel(model);
+                                            window.selectedAIModel = model;
+                                        }}
+                                    >
+                                        {aiModels.map((m) => (
+                                            <Dropdown.Item key={m.model} eventKey={m.model}>
+                                                {m.name} ({m.model})
+                                            </Dropdown.Item>
+                                        ))}
+                                    </AISource>
+                                    <Spacer />
                                     <HeadIcons>
                                         <HeadIcon
                                             role="button"
-                                            title={chrome.i18n.getMessage("Settings")}
+                                            title={window.__i18n("Settings")}
                                             onClick={() => channel.emit("open_options_page")}
                                             data-testid="SettingIcon"
                                         >
@@ -637,7 +697,7 @@ export default function ResultPanel() {
                                         </HeadIcon>
                                         <HeadIcon
                                             role="button"
-                                            title={chrome.i18n.getMessage(
+                                            title={window.__i18n(
                                                 panelFix ? "UnfixResultFrame" : "FixResultFrame"
                                             )}
                                             onClick={() => {
@@ -652,7 +712,7 @@ export default function ResultPanel() {
                                         </HeadIcon>
                                         <HeadIcon
                                             role="button"
-                                            title={chrome.i18n.getMessage("CloseResultFrame")}
+                                            title={window.__i18n("CloseResultFrame")}
                                             onClick={() => setOpen(false)}
                                             data-testid="CloseIcon"
                                         >
@@ -800,11 +860,15 @@ const Panel = styled.div`
 const Head = styled.div`
     padding: 4px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     flex: 0 0 auto;
     overflow: visible;
     cursor: grab;
+`;
+
+const Spacer = styled.div`
+    flex: 1;
 `;
 
 const HeadIcons = styled.div`
@@ -875,6 +939,20 @@ const SourceOption = styled(Dropdown)`
     background-color: transparent;
     border-color: transparent;
     outline: none;
+`;
+
+const AISource = styled(Dropdown)`
+    max-width: 30%;
+    font-weight: normal;
+    font-size: 11px;
+    cursor: pointer;
+    text-align-last: center;
+    background-color: transparent;
+    border-color: transparent;
+    outline: none;
+    margin: 0 4px;
+    flex-shrink: 0;
+    color: #667eea;
 `;
 
 const Highlight = styled.div`

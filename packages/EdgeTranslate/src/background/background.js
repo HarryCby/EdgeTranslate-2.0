@@ -1,4 +1,4 @@
-import { TranslatorManager, translatePage, executeGoogleScript } from "./library/translate.js";
+import { TranslatorManager, translatePage, executeGoogleScript, executeYoudaoPageTranslate } from "./library/translate.js";
 import {
     addUrlBlacklist,
     addDomainBlacklist,
@@ -46,7 +46,7 @@ chrome.contextMenus.create({
 
 chrome.contextMenus.create({
     id: "translate_page_google",
-    title: chrome.i18n.getMessage("TranslatePageGoogle"),
+    title: chrome.i18n.getMessage("TranslatePageYoudao"),
     contexts: ["browser_action"],
 });
 
@@ -92,19 +92,18 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     // 只有在生产环境下，才会展示说明页面
     if (process.env.NODE_ENV === "production") {
         if (details.reason === "install") {
-            // 首次安装，引导用户查看wiki
-            chrome.tabs.create({
-                // 为wiki页面创建一个新的标签页
-                url: chrome.i18n.getMessage("WikiLink"),
-            });
+            // 首次安装，引导用户查看wiki（已禁用）
+            // chrome.tabs.create({
+            //     url: chrome.i18n.getMessage("WikiLink"),
+            // });
 
-            // 告知用户数据收集相关信息
-            chrome.notifications.create("data_collection_notification", {
-                type: "basic",
-                iconUrl: "./icon/icon128.png",
-                title: chrome.i18n.getMessage("AppName"),
-                message: chrome.i18n.getMessage("DataCollectionNotice"),
-            });
+            // 告知用户数据收集相关信息（已禁用）
+            // chrome.notifications.create("data_collection_notification", {
+            //     type: "basic",
+            //     iconUrl: "./icon/icon128.png",
+            //     title: chrome.i18n.getMessage("AppName"),
+            //     message: chrome.i18n.getMessage("DataCollectionNotice"),
+            // });
 
             // 尝试发送安装事件
             setTimeout(() => {
@@ -140,17 +139,17 @@ chrome.runtime.onInstalled.addListener(async (details) => {
                 chrome.storage.sync.set(result);
             });
 
-            // 从旧版本更新，引导用户查看更新日志
-            chrome.notifications.create("update_notification", {
-                type: "basic",
-                iconUrl: "./icon/icon128.png",
-                title: chrome.i18n.getMessage("AppName"),
-                message: chrome.i18n.getMessage("ExtensionUpdated"),
-            });
+            // 从旧版本更新，引导用户查看更新日志（已禁用）
+            // chrome.notifications.create("update_notification", {
+            //     type: "basic",
+            //     iconUrl: "./icon/icon128.png",
+            //     title: chrome.i18n.getMessage("AppName"),
+            //     message: chrome.i18n.getMessage("ExtensionUpdated"),
+            // });
         }
 
-        // 卸载原因调查
-        chrome.runtime.setUninstallURL("https://wj.qq.com/s2/3265930/8f07/");
+        // 卸载原因调查（已禁用）
+        // chrome.runtime.setUninstallURL("https://wj.qq.com/s2/3265930/8f07/");
     }
 });
 
@@ -167,24 +166,23 @@ const TRANSLATOR_MANAGER = new TranslatorManager(channel);
 /**
  * 监听用户点击通知事件
  */
-chrome.notifications.onClicked.addListener((notificationId) => {
-    switch (notificationId) {
-        case "update_notification":
-            chrome.tabs.create({
-                // 为releases页面创建一个新的标签页
-                url: "https://github.com/EdgeTranslate/EdgeTranslate/releases",
-            });
-            break;
-        case "data_collection_notification":
-            chrome.tabs.create({
-                // 为设置页面单独创建一个标签页
-                url: chrome.runtime.getURL("options/options.html#google-analytics"),
-            });
-            break;
-        default:
-            break;
-    }
-});
+// 通知点击处理（已禁用）
+// chrome.notifications.onClicked.addListener((notificationId) => {
+//     switch (notificationId) {
+//         case "update_notification":
+//             chrome.tabs.create({
+//                 url: "https://github.com/EdgeTranslate/EdgeTranslate/releases",
+//             });
+//             break;
+//         case "data_collection_notification":
+//             chrome.tabs.create({
+//                 url: chrome.runtime.getURL("options/options.html#google-analytics"),
+//             });
+//             break;
+//         default:
+//             break;
+//     }
+// });
 
 /**
  * 添加点击菜单后的处理事件
@@ -212,7 +210,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             translatePage(channel);
             break;
         case "translate_page_google":
-            executeGoogleScript(channel);
+            executeYoudaoPageTranslate();
             break;
         case "settings":
             chrome.runtime.openOptionsPage();
@@ -322,7 +320,7 @@ chrome.webRequest.onHeadersReceived.addListener(
                               // The last "\s" is added to prevent matching script-src-attr, script-src-elem, etc..
                               /((^|;)\s*(default-src|script-src|img-src|connect-src))\s/g,
                               // eslint-disable-next-line prefer-template
-                              "$1 'unsafe-inline' translate.googleapis.com translate.google.com *.google.com *.gstatic.com " +
+                              "$1 'unsafe-inline' translate.googleapis.com translate.google.com *.google.com *.gstatic.com *.ydstatic.com fanyi.youdao.com " +
                                   chrome.runtime.getURL("") +
                                   " "
                           )

@@ -259,8 +259,10 @@ class BingTranslator {
             /var params_AbusePreventionHelper\s*=\s*\[([0-9]+),\s*"([^"]+)",[^\]]*\];/
         );
 
+        // Extract IID from the data-iid attribute on #rich_tta element.
+        // The new Bing Translator page uses format like "translator.5023".
         const html = this.HTMLParser.parseFromString(response.data, "text/html");
-        this.IID = html.getElementById("rich_tta")!.getAttribute("data-iid") || "";
+        this.IID = html.getElementById("rich_tta")?.getAttribute("data-iid") || "";
 
         // Reset request count.
         this.count = 0;
@@ -280,9 +282,12 @@ class BingTranslator {
         try {
             const translations = result[0].translations;
             parsed.mainMeaning = translations[0].text;
-            parsed.tPronunciation = translations[0].transliteration.text;
-            // eslint-disable-next-line no-empty
-        } catch (error) {}
+            if (translations[0].transliteration) {
+                parsed.tPronunciation = translations[0].transliteration.text || translations[0].transliteration;
+            }
+        } catch (error) {
+            console.warn("[Bing] parseTranslateResult failed:", error);
+        }
 
         return parsed;
     }
@@ -299,29 +304,39 @@ class BingTranslator {
         const parsed = extras || new Object();
 
         try {
-            parsed.originalText = result[0].displaySource;
+            const root = result[0];
+            if (!root) return parsed;
 
-            const translations = result[0].translations;
-            parsed.mainMeaning = translations[0].displayTarget;
-            parsed.tPronunciation = translations[0].transliteration;
+            parsed.originalText = root.displaySource || parsed.originalText;
+
+            const translations = root.translations;
+            if (!translations || !translations.length) return parsed;
+
+            parsed.mainMeaning = translations[0].displayTarget || parsed.mainMeaning;
+            if (translations[0].transliteration) {
+                parsed.tPronunciation = translations[0].transliteration.text || translations[0].transliteration;
+            }
 
             const detailedMeanings = [];
-            for (const i in translations) {
+            for (const item of translations) {
+                if (!item.posTag && !item.displayTarget) continue;
                 const synonyms = [];
-                for (const j in translations[i].backTranslations) {
-                    synonyms.push(translations[i].backTranslations[j].displayText);
+                if (item.backTranslations) {
+                    for (const back of item.backTranslations) {
+                        if (back.displayText) synonyms.push(back.displayText);
+                    }
                 }
-
                 detailedMeanings.push({
-                    pos: translations[i].posTag,
-                    meaning: translations[i].displayTarget,
+                    pos: item.posTag,
+                    meaning: item.displayTarget,
                     synonyms,
                 });
             }
 
             parsed.detailedMeanings = detailedMeanings;
-            // eslint-disable-next-line no-empty
-        } catch (error) {}
+        } catch (error) {
+            console.warn("[Bing] parseLookupResult failed:", error);
+        }
 
         return parsed;
     }
@@ -338,21 +353,24 @@ class BingTranslator {
         const parsed = extras || new Object();
 
         try {
-            parsed.examples = result[0].examples.map(
-                (example: {
-                    sourcePrefix: string;
-                    sourceTerm: string;
-                    sourceSuffix: string;
-                    targetPrefix: string;
-                    targetTerm: string;
-                    targetSuffix: string;
-                }) => ({
-                    source: `${example.sourcePrefix}<b>${example.sourceTerm}</b>${example.sourceSuffix}`,
-                    target: `${example.targetPrefix}<b>${example.targetTerm}</b>${example.targetSuffix}`,
-                })
-            );
-            // eslint-disable-next-line no-empty
-        } catch (error) {}
+            if (result[0] && result[0].examples) {
+                parsed.examples = result[0].examples.map(
+                    (example: {
+                        sourcePrefix: string;
+                        sourceTerm: string;
+                        sourceSuffix: string;
+                        targetPrefix: string;
+                        targetTerm: string;
+                        targetSuffix: string;
+                    }) => ({
+                        source: `${example.sourcePrefix}<b>${example.sourceTerm}</b>${example.sourceSuffix}`,
+                        target: `${example.targetPrefix}<b>${example.targetTerm}</b>${example.targetSuffix}`,
+                    })
+                );
+            }
+        } catch (error) {
+            console.warn("[Bing] parseExampleResult failed:", error);
+        }
 
         return parsed;
     }
@@ -369,7 +387,7 @@ class BingTranslator {
                 baseURL: this.HOST,
                 url: `tfetspktok?isVertical=1&&IG=${this.IG}&IID=${
                     this.IID
-                }.${this.count.toString()}`,
+                }&SFX=${this.count.toString()}`,
                 headers: this.HEADERS,
                 data: `&token=${encodeURIComponent(this.token)}&key=${encodeURIComponent(
                     this.key
@@ -428,7 +446,7 @@ class BingTranslator {
     constructDetectParams(text: string): AxiosRequestConfig {
         const url = `ttranslatev3?isVertical=1&IG=${this.IG}&IID=${
                 this.IID
-            }.${this.count.toString()}`,
+            }&SFX=${this.count.toString()}`,
             data = `&fromLang=auto-detect&to=zh-Hans&text=${encodeURIComponent(
                 text
             )}&token=${encodeURIComponent(this.token)}&key=${encodeURIComponent(this.key)}`;
@@ -454,7 +472,7 @@ class BingTranslator {
     constructTranslateParams(text: string, from: string, to: string): AxiosRequestConfig {
         const translateURL = `ttranslatev3?isVertical=1&IG=${this.IG}&IID=${
                 this.IID
-            }.${this.count.toString()}`,
+            }&SFX=${this.count.toString()}`,
             translateData = `&fromLang=${this.LAN_TO_CODE.get(from)}&to=${this.LAN_TO_CODE.get(
                 to
             )}&text=${encodeURIComponent(text)}&token=${encodeURIComponent(
@@ -482,7 +500,7 @@ class BingTranslator {
     constructLookupParams(text: string, from: string, to: string): AxiosRequestConfig {
         const lookupURL = `tlookupv3?isVertical=1&IG=${this.IG}&IID=${
                 this.IID
-            }.${this.count.toString()}`,
+            }&SFX=${this.count.toString()}`,
             lookupData = `&from=${
                 // Use detected language.
                 from
@@ -517,7 +535,7 @@ class BingTranslator {
     ): AxiosRequestConfig {
         const exampleURL = `texamplev3?isVertical=1&IG=${this.IG}&IID=${
                 this.IID
-            }.${this.count.toString()}`,
+            }&SFX=${this.count.toString()}`,
             exampleData = `&from=${
                 // Use detected language.
                 from
@@ -705,53 +723,58 @@ class BingTranslator {
      *
      * @returns {Promise<Object>} translation Promise
      */
-    async translate(text: string, from: string, to: string) {
-        let transResponse;
-        try {
-            /**
-             * Request the translate api to detect the language of the text and get a basic translation.
-             */
-            transResponse = await this.request(this.constructTranslateParams, [text, from, to]);
-        } catch (error: any) {
-            error.errorAct = {
-                api: "bing",
-                action: "translate",
-                text,
-                from,
-                to,
-            };
-            throw error;
-        }
+    /**
+     * Fast translate — only the translate API, returns mainMeaning immediately
+     * AND caches the raw response for later enrichment.
+     */
+    _cachedTransResponse: any = null;
 
-        // Set up originalText in case that lookup failed.
-        const transResult = this.parseTranslateResult(transResponse, {
+    async translateQuick(text: string, from: string, to: string): Promise<TranslationResult> {
+        const transResponse = await this.request(this.constructTranslateParams, [text, from, to]);
+        this._cachedTransResponse = transResponse; // cache for enrich()
+        return this.parseTranslateResult(transResponse, {
             originalText: text,
             mainMeaning: "",
         });
+    }
+
+    /**
+     * Enrich a quick translate result with dictionary details.
+     * Uses cached translate response — no extra API calls.
+     */
+    // eslint-disable-next-line no-unused-vars
+    async enrich(text: string, _from: string, to: string, quickResult: TranslationResult): Promise<TranslationResult> {
+        void _from;
+        const transResponse = this._cachedTransResponse;
+        if (!transResponse) return quickResult;
 
         try {
-            /**
-             * Attempt to request the lookup api to get detailed translation.
-             */
             const lookupResponse = await this.request(
                 this.constructLookupParams,
                 [text, transResponse[0].detectedLanguage.language, to],
                 false
             );
-            const lookupResult = this.parseLookupResult(lookupResponse, transResult);
+            const lookupResult = this.parseLookupResult(lookupResponse, quickResult);
 
-            /**
-             * Attempt to request the example api to get examples for word.
-             */
-            const exampleResponse = await this.request(
-                this.constructExampleParams,
-                [transResponse[0].detectedLanguage.language, to, text, lookupResult.mainMeaning],
-                false
-            );
-            return this.parseExampleResult(exampleResponse, lookupResult);
+            try {
+                const exampleResponse = await this.request(
+                    this.constructExampleParams,
+                    [transResponse[0].detectedLanguage.language, to, text, lookupResult.mainMeaning],
+                    false
+                );
+                return this.parseExampleResult(exampleResponse, lookupResult);
+            } catch {
+                return lookupResult;
+            }
         } catch (e) {
-            return transResult;
+            console.warn("[Bing] Enrich failed, using quick result:", e);
+            return quickResult;
         }
+    }
+
+    async translate(text: string, from: string, to: string) {
+        const quick = await this.translateQuick(text, from, to);
+        return this.enrich(text, from, to, quick);
     }
 
     /**

@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS = {
         Resize: false,
         RTL: false,
         FoldLongContent: true,
-        SelectTranslatePosition: "TopRight",
+        SelectTranslatePosition: "BottomRight",
     },
     // Default settings of source language and target language
     languageSetting: { sl: "auto", tl: BROWSER_LANGUAGES_MAP[chrome.i18n.getUILanguage()] },
@@ -29,24 +29,18 @@ const DEFAULT_SETTINGS = {
         UseGoogleAnalytics: true,
         UsePDFjs: true,
     },
-    DefaultTranslator: "GoogleTranslate",
-    DefaultPageTranslator: "GooglePageTranslate",
+    DefaultTranslator: "HybridTranslate",
+    DefaultPageTranslator: "YoudaoPageTranslate",
     HybridTranslatorConfig: {
-        // The translators used in current hybrid translate.
-        translators: ["BaiduTranslate", "BingTranslate", "GoogleTranslate"],
-
-        // The translators for each item.
+        translators: ["BingTranslate", "TencentTranslate", "BaiduTranslate", "YoudaoTranslate"],
         selections: {
-            // ATTENTION: The following four items MUST HAVE THE SAME TRANSLATOR!
-            originalText: "BaiduTranslate",
-            mainMeaning: "BaiduTranslate",
-            tPronunciation: "BaiduTranslate",
-            sPronunciation: "BaiduTranslate",
-
-            // For the following three items, any translator combination is OK.
-            detailedMeanings: "BingTranslate",
-            definitions: "GoogleTranslate",
-            examples: "BaiduTranslate",
+            originalText: "BingTranslate",
+            mainMeaning: "BingTranslate",
+            tPronunciation: "YoudaoTranslate",   // 有道提供 UK 音标
+            sPronunciation: "YoudaoTranslate",  // 有道提供音标
+            detailedMeanings: "YoudaoTranslate",
+            definitions: "BingTranslate",
+            examples: "YoudaoTranslate",
         },
     },
     // Defines which contents in the translating result should be displayed.
@@ -60,16 +54,44 @@ const DEFAULT_SETTINGS = {
         detailedMeanings: true,
         definitions: true,
         examples: true,
+        aiContext: true,
     },
     // Defines the order of displaying contents.
     ContentDisplayOrder: [
         "mainMeaning",
         "originalText",
+        "aiContext",
         "detailedMeanings",
         "definitions",
         "examples",
     ],
     HidePageTranslatorBanner: false,
+    // Tencent Cloud TMT API credentials.
+    TencentTranslateConfig: {
+        secretId: "",
+        secretKey: "",
+    },
+    // Baidu Translate API credentials.
+    BaiduTranslateConfig: {
+        appId: "",
+        appKey: "",
+    },
+    // AI Context Translation — multiple OpenAI-compatible API configs.
+    AIConfigs: [{
+        displayName: "DeepSeek",
+        apiUrl: "https://api.deepseek.com",
+        apiKey: "",
+        model: "deepseek-chat",
+    }],
+    // Youdao Translate API credentials.
+    YoudaoTranslateConfig: {
+        appKey: "",
+        appSecret: "",
+    },
+    // Google Translate proxy (optional — fill in to use Google behind GFW).
+    GoogleTranslateConfig: {
+        proxyUrl: "",
+    },
 };
 
 /**

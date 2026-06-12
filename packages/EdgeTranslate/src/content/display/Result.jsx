@@ -75,6 +75,7 @@ export default function Result(props) {
      * The pronounce status
      */
     const [sourcePronouncing, setSourcePronounce] = useReducer(sourcePronounce, false),
+        [sourceUKPronouncing, setSourceUKPronounce] = useReducer(sourceUKPronounce, false),
         [targetPronouncing, setTargetPronounce] = useReducer(targetPronounce, false);
 
     // Indicate whether user can edit and copy the translation result
@@ -107,7 +108,7 @@ export default function Result(props) {
                                     element: translateResultElRef.current,
                                 })
                             }
-                            title={chrome.i18n.getMessage("CopyResult")}
+                            title={window.__i18n("CopyResult")}
                         />
                     </TextLine>
                     {(displayTPronunciationIcon || displayTPronunciation) && (
@@ -153,7 +154,7 @@ export default function Result(props) {
                         {editing ? (
                             <StyledEditDoneIcon
                                 role="button"
-                                title={chrome.i18n.getMessage("Retranslate")}
+                                title={window.__i18n("Retranslate")}
                                 onClick={() =>
                                     setEditing({
                                         edit: false,
@@ -164,7 +165,7 @@ export default function Result(props) {
                         ) : (
                             <StyledEditIcon
                                 role="button"
-                                title={chrome.i18n.getMessage("EditText")}
+                                title={window.__i18n("EditText")}
                                 onClick={() =>
                                     setEditing({
                                         edit: true,
@@ -174,7 +175,8 @@ export default function Result(props) {
                             />
                         )}
                     </TextLine>
-                    {(displaySPronunciationIcon || displaySPronunciation) && (
+                    {/* US pronunciation */}
+                    {(displaySPronunciationIcon || displaySPronunciation) && props.sPronunciation && (
                         <PronounceLine>
                             {displaySPronunciationIcon &&
                                 (sourcePronouncing ? (
@@ -191,14 +193,117 @@ export default function Result(props) {
                                     DrawerHeight={TextContentDrawerHeight}
                                     DisableDrawer={!foldLongContent}
                                 >
-                                    {props.sPronunciation}
+                                    US {props.sPronunciation}
                                 </PronounceText>
                             )}
+                        </PronounceLine>
+                    )}
+                    {/* UK pronunciation — shows when UK phonetic is available */}
+                    {props.tPronunciation && (
+                        <PronounceLine>
+                            {sourceUKPronouncing ? (
+                                <StyledPronounceLoadingIcon />
+                            ) : (
+                                <StyledPronounceIcon
+                                    role="button"
+                                    onClick={() => setSourceUKPronounce(true)}
+                                />
+                            )}
+                            <PronounceText
+                                dir={textDirection}
+                                DrawerHeight={TextContentDrawerHeight}
+                                DisableDrawer={!foldLongContent}
+                            >
+                                UK {props.tPronunciation}
+                            </PronounceText>
                         </PronounceLine>
                     )}
                 </Source>
             )}
         </Fragment>
+    );
+
+    // Group detailed meanings by POS and merge synonyms
+    const groupedMeanings = groupMeaningsByPOS(props.detailedMeanings);
+
+    // Synonym toggle state — one per POS group
+    const [expandedSynonyms, setExpandedSynonyms] = useState({});
+
+    // AI context translation state
+    const [aiContext, setAiContext] = useState(null); // { loading: true } | { result: string } | { error: string }
+
+    // AI context translation — manual trigger
+    // AI context collapse state
+    const [showAIContext, setShowAIContext] = useState(false);
+
+    const triggerAI = async () => {
+        if (!props.originalText) return;
+        const text = props.originalText;
+        const ctx = window._aiContext || "";
+        const model = window.selectedAIModel || "default";
+
+        console.log("[AI Translate] text:", text);
+        console.log("[AI Translate] model:", model);
+        console.log("[AI Translate] context (first 200 chars):", ctx.substring(0, 200));
+        console.log("[AI Translate] mainMeaning:", props.mainMeaning);
+
+        setAiContext({ loading: true, context: ctx || "(未捕获到上下文，使用原文)" });
+
+        try {
+            const result = await channel.request("ai_context_translate", {
+                text, context: ctx || text,
+                mainMeaning: props.mainMeaning,
+                model,
+            });
+            console.log("[AI Translate] result:", result);
+            setAiContext({ result, context: ctx || "(未捕获到上下文，使用原文)" });
+        } catch (e) {
+            console.error("[AI Translate] error:", e);
+            setAiContext({ error: e.message || "AI 翻译失败", context: ctx || "(未捕获到上下文，使用原文)" });
+        }
+    };
+
+    const AIContextContent = (
+        <AIContextBlock key={"aiContext"}>
+            <AIContextHead>
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <AIContextSpot />
+                    <AIContextTitle>AI 上下文翻译</AIContextTitle>
+                </span>
+                {!aiContext?.loading && !aiContext?.result && !aiContext?.error && (
+                    <AITriggerIcon
+                        role="button"
+                        title="AI 分析上下文"
+                        onClick={triggerAI}
+                    />
+                )}
+                {(aiContext?.loading || aiContext?.result || aiContext?.error) && (
+                    <AITriggerIcon
+                        role="button"
+                        title="重新分析"
+                        onClick={triggerAI}
+                        style={{ opacity: 0.5 }}
+                    />
+                )}
+            </AIContextHead>
+            <BlockSplitLine />
+            {/* Show captured context — always visible when AI is triggered */}
+            {aiContext && (
+                <AIContextSource>
+                    <AIContextSourceToggle onClick={() => setShowAIContext(!showAIContext)}>
+                        读取的上下文 {showAIContext ? "▲" : "▼"}
+                    </AIContextSourceToggle>
+                    {showAIContext && <AIContextSourceText>{aiContext.context || "(无上下文)"}</AIContextSourceText>}
+                </AIContextSource>
+            )}
+            {aiContext?.loading ? (
+                <AILoading>AI 分析中...</AILoading>
+            ) : aiContext?.error ? (
+                <AIError>⚠ {aiContext.error} <AIContextRetry onClick={triggerAI}>重试</AIContextRetry></AIError>
+            ) : aiContext?.result ? (
+                <AIContextText dir={textDirection}>{aiContext.result}</AIContextText>
+            ) : null}
+        </AIContextBlock>
     );
 
     const DetailContent = (
@@ -208,7 +313,7 @@ export default function Result(props) {
                     <BlockHead>
                         <DetailHeadSpot />
                         <BlockHeadTitle>
-                            {chrome.i18n.getMessage("DetailedMeanings")}
+                            {window.__i18n("DetailedMeanings")}
                         </BlockHeadTitle>
                         <BlockSplitLine />
                     </BlockHead>
@@ -216,28 +321,39 @@ export default function Result(props) {
                         DrawerHeight={BlockContentDrawerHeight}
                         DisableDrawer={!foldLongContent}
                     >
-                        {props.detailedMeanings.map((detail, detailIndex) => (
-                            <Fragment key={`detail-${detailIndex}`}>
-                                <Position dir={textDirection}>{detail.pos}</Position>
-                                <DetailMeaning dir={textDirection}>{detail.meaning}</DetailMeaning>
-                                {detail.synonyms?.length > 0 && (
-                                    <Fragment>
-                                        <SynonymTitle dir={textDirection}>
-                                            {chrome.i18n.getMessage("Synonyms")}
-                                        </SynonymTitle>
-                                        <SynonymLine>
-                                            {detail.synonyms.map((word, synonymIndex) => (
-                                                <SynonymWord
-                                                    key={`detail-synonym-${synonymIndex}`}
-                                                    dir={textDirection}
-                                                >
-                                                    {word}
-                                                </SynonymWord>
-                                            ))}
-                                        </SynonymLine>
-                                    </Fragment>
+                        {groupedMeanings.map((group, groupIndex) => (
+                            <POSGroup key={`pos-group-${groupIndex}`}>
+                                <POSRow dir={textDirection}>
+                                    <POSTag dir={textDirection}>{group.pos}</POSTag>
+                                    <MeaningText dir={textDirection}>
+                                        {group.meanings.join("，")}
+                                    </MeaningText>
+                                </POSRow>
+                                {group.synonyms.length > 0 && (
+                                    <SynonymSection>
+                                        <SynonymToggle
+                                            onClick={() =>
+                                                setExpandedSynonyms((prev) => ({
+                                                    ...prev,
+                                                    [groupIndex]: !prev[groupIndex],
+                                                }))
+                                            }
+                                        >
+                                            {expandedSynonyms[groupIndex] ? "收起" : `展开 ${group.synonyms.length} 个同义词`}
+                                            <ArrowIcon expanded={!!expandedSynonyms[groupIndex]} />
+                                        </SynonymToggle>
+                                        {expandedSynonyms[groupIndex] && (
+                                            <SynonymLine>
+                                                {group.synonyms.map((word, si) => (
+                                                    <SynonymWord key={`synonym-${groupIndex}-${si}`}>
+                                                        {word}
+                                                    </SynonymWord>
+                                                ))}
+                                            </SynonymLine>
+                                        )}
+                                    </SynonymSection>
                                 )}
-                            </Fragment>
+                            </POSGroup>
                         ))}
                     </BlockContent>
                 </Detail>
@@ -251,7 +367,7 @@ export default function Result(props) {
                 <Definition>
                     <BlockHead>
                         <DefinitionHeadSpot />
-                        <BlockHeadTitle>{chrome.i18n.getMessage("Definitions")}</BlockHeadTitle>
+                        <BlockHeadTitle>{window.__i18n("Definitions")}</BlockHeadTitle>
                         <BlockSplitLine />
                     </BlockHead>
                     <BlockContent
@@ -272,7 +388,7 @@ export default function Result(props) {
                                 {definition.synonyms?.length > 0 && (
                                     <Fragment>
                                         <SynonymTitle dir={textDirection}>
-                                            {chrome.i18n.getMessage("Synonyms")}
+                                            {window.__i18n("Synonyms")}
                                         </SynonymTitle>
                                         <SynonymLine>
                                             {definition.synonyms.map((word, synonymIndex) => (
@@ -300,7 +416,7 @@ export default function Result(props) {
                 <Example>
                     <BlockHead>
                         <ExampleHeadSpot />
-                        <BlockHeadTitle>{chrome.i18n.getMessage("Examples")}</BlockHeadTitle>
+                        <BlockHeadTitle>{window.__i18n("Examples")}</BlockHeadTitle>
                         <BlockSplitLine />
                     </BlockHead>
                     <BlockContent
@@ -344,6 +460,7 @@ export default function Result(props) {
     const CONTENTS = {
         mainMeaning: TargetContent,
         originalText: SourceContent,
+        aiContext: AIContextContent,
         detailedMeanings: DetailContent,
         definitions: DefinitionContent,
         examples: ExampleContent,
@@ -361,6 +478,7 @@ export default function Result(props) {
             channel.on("pronouncing_finished", (detail) => {
                 if (checkTimestamp(detail.timestamp)) {
                     if (detail.pronouncing === "source") setSourcePronounce(false);
+                    else if (detail.pronouncing === "sourceUK") setSourceUKPronounce(false);
                     else if (detail.pronouncing === "target") setTargetPronounce(false);
                 }
             })
@@ -370,11 +488,12 @@ export default function Result(props) {
             channel.on("pronouncing_error", (detail) => {
                 if (checkTimestamp(detail.timestamp)) {
                     if (detail.pronouncing === "source") setSourcePronounce(false);
+                    else if (detail.pronouncing === "sourceUK") setSourceUKPronounce(false);
                     else if (detail.pronouncing === "target") setTargetPronounce(false);
                     notifier.notify({
                         type: "error",
-                        title: chrome.i18n.getMessage("AppName"),
-                        detail: chrome.i18n.getMessage("PRONOUN_ERR"),
+                        title: window.__i18n("AppName"),
+                        detail: window.__i18n("PRONOUN_ERR"),
                     });
                 }
             })
@@ -456,6 +575,40 @@ export default function Result(props) {
             </ThemeProvider>
         </Fragment>
     );
+}
+
+/**
+ * Group detailed meanings by POS tag and merge synonyms within each group.
+ * Deduplicates meanings and synonyms to avoid visual repetition.
+ *
+ * @param {Array<{pos: string; meaning: string; synonyms?: Array<string>}>} meanings raw detailed meanings
+ * @returns {Array<{pos: string; meanings: string[]; synonyms: string[]}>} grouped and deduplicated meanings
+ */
+function groupMeaningsByPOS(meanings) {
+    if (!meanings?.length) return [];
+
+    const groups = new Map();
+    for (const item of meanings) {
+        if (!groups.has(item.pos)) {
+            groups.set(item.pos, { meanings: new Set(), synonyms: new Set() });
+        }
+        const group = groups.get(item.pos);
+        group.meanings.add(item.meaning);
+        if (item.synonyms) {
+            for (const s of item.synonyms) {
+                // Skip synonyms that are identical to any meaning in this group
+                if (!group.meanings.has(s)) {
+                    group.synonyms.add(s);
+                }
+            }
+        }
+    }
+
+    return Array.from(groups.entries()).map(([pos, group]) => ({
+        pos,
+        meanings: Array.from(group.meanings),
+        synonyms: Array.from(group.synonyms),
+    }));
 }
 
 /**
@@ -654,35 +807,87 @@ const DetailMeaning = styled.div`
     ${(props) => (props.theme.textDirection === "ltr" ? "margin-left" : "margin-right")}: 10px;
 `;
 
-const SynonymTitle = styled.div`
-    color: ${Gray};
-    font-size: small;
-    ${(props) => (props.theme.textDirection === "ltr" ? "margin-left" : "margin-right")}: 10px;
+const POSGroup = styled.div`
+    width: 100%;
+    margin-bottom: 14px;
+    &:last-child {
+        margin-bottom: 0;
+    }
+`;
+
+const POSRow = styled.div`
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    ${(props) => (props.theme.textDirection === "ltr" ? "" : "flex-direction: row-reverse;")}
+`;
+
+const POSTag = styled.span`
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    color: #8c8c8c;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+    ${(props) => (props.theme.textDirection === "rtl" ? "margin-left: 8px;" : "")}
+`;
+
+const MeaningText = styled.span`
+    font-size: 14px;
+    color: #262626;
+    line-height: 1.6;
+`;
+
+const SynonymSection = styled.div`
+    margin-top: 4px;
+    ${(props) => (props.theme.textDirection === "ltr" ? "padding-left: 4px;" : "padding-right: 4px;")}
+`;
+
+const SynonymToggle = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #1890ff;
+    cursor: pointer;
+    user-select: none;
+    &:hover {
+        color: #40a9ff;
+    }
+`;
+
+const ArrowIcon = styled.span`
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #1890ff;
+    transition: transform 0.2s;
+    ${(props) => (props.expanded ? "transform: rotate(180deg);" : "")}
 `;
 
 const SynonymLine = styled.div`
     display: flex;
     flex-wrap: wrap;
-    padding: 5px 0;
-    ${(props) =>
-        props.theme.textDirection === "ltr"
-            ? `
-                margin-left: 10px;
-                flex-direction: row;
-            `
-            : `
-                margin-right: 10px;       
-                flex-direction: row-reverse;
-            `};
+    gap: 6px;
+    padding: 6px 0 2px;
 `;
 
 const SynonymWord = styled.span`
-    padding: 2px 10px;
-    margin: 0 2px 3px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 32px;
-    cursor: pointer;
-    font-size: small;
+    font-size: 12px;
+    color: #595959;
+    background: #fafafa;
+    padding: 2px 8px;
+    border-radius: 2px;
+    cursor: default;
+    transition: background 0.15s;
+    &:hover {
+        background: #f0f0f0;
+    }
 `;
 
 const Definition = styled(Block)``;
@@ -693,6 +898,94 @@ const DefinitionHeadSpot = styled(BlockHeadSpot)`
 
 const DefinitionExample = styled(DetailMeaning)`
     color: #5f6368;
+`;
+
+const AIContextBlock = styled(Block)``;
+
+const AIContextSpot = styled(BlockHeadSpot)`
+    background: linear-gradient(135deg, #667eea, #764ba2);
+`;
+
+const AIContextText = styled.div`
+    font-size: 14px;
+    color: #262626;
+    line-height: 1.6;
+    padding: 4px 0;
+`;
+
+const AILoading = styled.div`
+    font-size: 13px;
+    color: #8c8c8c;
+    padding: 8px 0;
+`;
+
+const AIError = styled.div`
+    font-size: 13px;
+    color: #ff4d4f;
+    padding: 4px 0;
+`;
+
+const AIContextRetry = styled.span`
+    color: #1890ff;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 12px;
+    &:hover { color: #40a9ff; }
+`;
+
+const AIContextSource = styled.div`
+    margin: 4px 0 8px;
+`;
+
+const AIContextSourceToggle = styled.span`
+    font-size: 11px;
+    color: #8c8c8c;
+    cursor: pointer;
+    user-select: none;
+    &:hover { color: #595959; }
+`;
+
+const AIContextSourceText = styled.div`
+    margin-top: 4px;
+    padding: 8px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #8c8c8c;
+    line-height: 1.5;
+    max-height: 120px;
+    overflow-y: auto;
+    word-break: break-all;
+`;
+
+const AIContextHead = styled(BlockHead)`
+    justify-content: space-between;
+`;
+
+const AIContextTitle = styled(BlockHeadTitle)``;
+
+const AITriggerIcon = styled.div`
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #667eea;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    color: #667eea;
+    transition: all 0.2s;
+    &:hover {
+        background: #667eea;
+        color: #fff;
+    }
+    &::before {
+        content: "AI";
+    }
 `;
 
 const Example = styled(Block)``;
@@ -744,6 +1037,25 @@ function sourcePronounce(_, startPronounce) {
                 } else {
                     sourceTTSSpeed = "fast";
                 }
+            });
+    return startPronounce;
+}
+
+/**
+ * A reducer for UK source pronouncing state.
+ */
+let sourceUKTTSSpeed = "fast";
+function sourceUKPronounce(_, startPronounce) {
+    if (startPronounce)
+        channel
+            .request("pronounce", {
+                pronouncing: "sourceUK",
+                text: window.translateResult.originalText,
+                language: window.translateResult.sourceLanguage,
+                speed: sourceUKTTSSpeed,
+            })
+            .then(() => {
+                sourceUKTTSSpeed = sourceUKTTSSpeed === "fast" ? "slow" : "fast";
             });
     return startPronounce;
 }

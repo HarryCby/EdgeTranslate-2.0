@@ -20,4 +20,30 @@ describe("bing translator api", () => {
             expect(TRANSLATOR.IID!.length).toBeGreaterThan(0);
         });
     });
+
+    it("to detect language of English text", async () => {
+        const result = await TRANSLATOR.detect("hello");
+        expect(result).toEqual("en");
+    });
+
+    it("to detect language of Chinese text", async () => {
+        const result = await TRANSLATOR.detect("你好");
+        // Bing may detect simplified Chinese text as zh-TW or zh-CN depending on region
+        expect(["zh-CN", "zh-TW", "zh-Hans", "zh-Hant"]).toContain(result);
+    });
+
+    it("to translate English to Chinese", async () => {
+        const result = await TRANSLATOR.translate("hello", "en", "zh-CN");
+        expect(result.mainMeaning).toBeTruthy();
+        // Verify translation result contains meaningful output
+        expect(typeof result.mainMeaning).toEqual("string");
+        expect(result.mainMeaning.length).toBeGreaterThan(0);
+    });
+
+    it("to return supported languages", () => {
+        const langs = TRANSLATOR.supportedLanguages();
+        expect(langs.size).toBeGreaterThan(0);
+        expect(langs.has("en")).toBe(true);
+        expect(langs.has("zh-CN")).toBe(true);
+    });
 });

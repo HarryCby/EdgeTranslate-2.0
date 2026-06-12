@@ -3,6 +3,8 @@ import GoogleTranslator from "./translators/google";
 import BaiduTranslator from "./translators/baidu";
 import DeeplTranslator from "./translators/deepl";
 import TencentTranslator from "./translators/tencent";
+import YoudaoTranslator from "./translators/youdao";
+import AITranslator from "./translators/ai";
 import HybridTranslator from "./translators/hybrid";
 import axios from "./axios";
 
@@ -233,6 +235,8 @@ export {
     BingTranslator,
     GoogleTranslator,
     TencentTranslator,
+    YoudaoTranslator,
+    AITranslator,
     BaiduTranslator,
     DeeplTranslator,
 };

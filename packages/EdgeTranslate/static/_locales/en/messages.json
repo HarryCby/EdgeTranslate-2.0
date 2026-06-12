@@ -247,6 +247,10 @@
         "message": "Google Page Trans.",
         "description": "Translate current page with Google translate api."
     },
+    "YoudaoPageTranslate": {
+        "message": "Youdao Page Trans.",
+        "description": "Translate current page with Youdao translate web page feature."
+    },
     "TranslatePage": {
         "message": "Translate this page",
         "description": "Translate this page with default page translator."
@@ -262,6 +266,10 @@
     "TranslatePageGoogle": {
         "message": "Translate this page with Google",
         "description": "Translate current page with Google translate api."
+    },
+    "TranslatePageYoudao": {
+        "message": "Translate this page with Youdao",
+        "description": "Translate current page with Youdao translate web feature."
     },
     "UseGoogleAnalytics": {
         "message": "Provide statistics to help improve the extension",
@@ -374,6 +382,14 @@
     "TencentTranslateShort": {
         "message": "Tencent",
         "description": "Abbreviation of Tencent Translate."
+    },
+    "YoudaoTranslate": {
+        "message": "Youdao Translate",
+        "description": "Youdao Translate."
+    },
+    "YoudaoTranslateShort": {
+        "message": "Youdao",
+        "description": "Abbreviation of Youdao Translate."
     },
     "HybridTranslate": {
         "message": "Hybrid Translate",
@@ -1306,5 +1322,113 @@
     "Zulu": {
         "message": "Zulu",
         "description": "Zulu"
+    },
+    "DefaultTargetLanguage": {
+        "message": "Default Translate Language (Target)",
+        "description": ""
+    },
+    "UILanguage": {
+        "message": "Interface Language / UI Language",
+        "description": ""
+    },
+    "ApiKeyConfig": {
+        "message": "API Key Configuration (auto-saved)",
+        "description": ""
+    },
+    "TencentSecretId": {
+        "message": "Tencent Cloud SecretId",
+        "description": ""
+    },
+    "TencentSecretIdPlaceholder": {
+        "message": "Enter Tencent Cloud SecretId",
+        "description": ""
+    },
+    "TencentSecretKey": {
+        "message": "Tencent Cloud SecretKey",
+        "description": ""
+    },
+    "TencentSecretKeyPlaceholder": {
+        "message": "Enter Tencent Cloud SecretKey",
+        "description": ""
+    },
+    "GetApiKey": {
+        "message": "Get API Key: ",
+        "description": ""
+    },
+    "BaiduAppId": {
+        "message": "Baidu Translate APP ID",
+        "description": ""
+    },
+    "BaiduAppIdPlaceholder": {
+        "message": "Enter Baidu Translate APP ID",
+        "description": ""
+    },
+    "BaiduAppKey": {
+        "message": "Baidu Translate Key",
+        "description": ""
+    },
+    "BaiduAppKeyPlaceholder": {
+        "message": "Enter Baidu Translate Key",
+        "description": ""
+    },
+    "GoogleProxyUrl": {
+        "message": "Google Proxy URL",
+        "description": ""
+    },
+    "GoogleProxyUrlPlaceholder": {
+        "message": "Optional: proxy URL to enable Google Translate",
+        "description": ""
+    },
+    "GoogleProxyHint": {
+        "message": "Skip Google if empty, other translators unaffected",
+        "description": ""
+    },
+    "AiModelName": {
+        "message": "Name",
+        "description": ""
+    },
+    "AiApiUrl": {
+        "message": "API URL",
+        "description": ""
+    },
+    "AiApiKey": {
+        "message": "API Key",
+        "description": ""
+    },
+    "AiModelLabel": {
+        "message": "Model",
+        "description": ""
+    },
+    "AiModelIndex": {
+        "message": "Model $1",
+        "description": ""
+    },
+    "AiConfigHint": {
+        "message": "Supports DeepSeek, Groq, OpenAI, SiliconFlow and other OpenAI-compatible APIs",
+        "description": ""
+    },
+    "AddModel": {
+        "message": "+ Add Model",
+        "description": ""
+    },
+    "ExportConfig": {
+        "message": "Export Config",
+        "description": ""
+    },
+    "ImportConfig": {
+        "message": "Import Config",
+        "description": ""
+    },
+    "ConfigImported": {
+        "message": "Config imported. Please refresh the page.",
+        "description": ""
+    },
+    "ImportFailed": {
+        "message": "Import failed: invalid JSON format",
+        "description": ""
+    },
+    "FreeRegister": {
+        "message": "Free Register: ",
+        "description": ""
     }
 }

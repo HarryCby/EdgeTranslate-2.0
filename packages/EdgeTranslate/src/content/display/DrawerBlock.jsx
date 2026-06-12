@@ -50,9 +50,9 @@ export default function DrawerBlock(props) {
             {useDrawer && (
                 <Handle role="button" fold={fold} onClick={() => setFold(!fold)}>
                     {fold ? (
-                        <StyledArrowDownIcon title={chrome.i18n.getMessage("ClickToExpand")} />
+                        <StyledArrowDownIcon title={window.__i18n("ClickToExpand")} />
                     ) : (
-                        <StyledArrowUpIcon title={chrome.i18n.getMessage("ClickToFold")} />
+                        <StyledArrowUpIcon title={window.__i18n("ClickToFold")} />
                     )}
                 </Handle>
             )}

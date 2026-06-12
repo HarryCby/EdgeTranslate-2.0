@@ -1,363 +1,363 @@
 {
     "AppName": {
         "message": "Edge Translate",
-        "description": "Название приложения"
+        "description": "App Name"
     },
     "Description": {
-        "message": "Переводите что хотите.",
-        "description": "Описание приложения"
+        "message": "Translate what you want.",
+        "description": "App Description"
     },
     "ChangeLanguageSetting": {
-        "message": "Изменить настройки языка",
-        "description": "Изменить настройки языка"
+        "message": "Change language settings",
+        "description": "Change language setting"
     },
     "TranslateSelectedText": {
-        "message": "Перевести выбранный текст",
-        "description": "Ярлык для перевода выбранного текста."
+        "message": "Translate selected text",
+        "description": "Shortcut for translating selected text."
     },
     "FixResultFrame": {
-        "message": "Закрепить рамку результата",
-        "description": "Фиксация рамки результата перевода."
+        "message": "Fix the result frame",
+        "description": "Fix the translating result frame."
     },
     "UnfixResultFrame": {
-        "message": "Открепить окно отображения результата перевода",
-        "description": "Отключить окно отображения результатов перевода."
+        "message": "Unfix the result frame",
+        "description": "Unfix the translating result frame."
     },
     "CloseResultFrame": {
-        "message": "Закрыть рамку результата",
-        "description": "Закрывать рамку результатов перевода."
+        "message": "Close the result frame",
+        "description": "Close the translating result frame."
     },
     "ExchangeSourceAndTargetLanguage": {
-        "message": "Поменять исходный язык и язык перевода",
-        "description": "Смена исходного языка и языка перевода."
+        "message": "Exchange source and target language",
+        "description": "Exchange source and target language."
     },
     "CommonMeanings": {
-        "message": "Общие значения",
-        "description": "Общие значения"
+        "message": "Common Meanings",
+        "description": "Common Meanings"
     },
     "DetailedMeanings": {
-        "message": "Подробные значения",
-        "description": "Подробные значения"
+        "message": "Detailed Meanings",
+        "description": "Detailed Meanings"
     },
     "Definitions": {
-        "message": "Определения",
-        "description": "Определения"
+        "message": "Definitions",
+        "description": "Definitions"
     },
     "DefinitionsMeaning": {
-        "message": "Значение",
-        "description": "Значение определения"
+        "message": "Meaning",
+        "description": "Definition Meaning"
     },
     "DefinitionsExample": {
-        "message": "Пример",
-        "description": "Пример определения"
+        "message": "Example",
+        "description": "Definition Example"
     },
     "Synonyms": {
-        "message": "Синонимы",
-        "description": "Синонимы"
+        "message": "Synonyms",
+        "description": "Synonyms"
     },
     "OriginalText": {
-        "message": "Исходный текст",
-        "description": "Исходный текст, который будет переведён."
+        "message": "Original Text",
+        "description": "The original text to be translated."
     },
     "Phrases": {
-        "message": "Фразы",
-        "description": "Фразы"
+        "message": "Phrases",
+        "description": "Phrases"
     },
     "Examples": {
-        "message": "Примеры",
-        "description": "Примеры"
+        "message": "Examples",
+        "description": "Examples"
     },
     "PhoneticSymbol": {
-        "message": "Фонетический символ",
-        "description": "Фонетический символ"
+        "message": "Phonetic Symbol",
+        "description": "Phonetic Symbol"
     },
     "SourcePronunciation": {
-        "message": "Источник произношения",
-        "description": "Источник Произношения"
+        "message": "Source Pronunciation",
+        "description": "Source Pronunciation"
     },
     "TargetPronunciation": {
-        "message": "Целевое произношение",
-        "description": "Целевое произношение"
+        "message": "Target Pronunciation",
+        "description": "Target Pronunciation"
     },
     "SourcePronunciationIcon": {
-        "message": "Значок источника произношения",
-        "description": "Значок Источника Произношения."
+        "message": "Source Pronunciation Icon",
+        "description": "Source Pronunciation Icon"
     },
     "TargetPronunciationIcon": {
-        "message": "Значок целевого произношения",
-        "description": "Значок целевого произношения."
+        "message": "Target Pronunciation Icon",
+        "description": "Target Pronunciation Icon"
     },
     "Pronounce": {
-        "message": "Произнести",
-        "description": "Произнести"
+        "message": "Pronounce",
+        "description": "Pronounce"
     },
     "PronounceSelected": {
-        "message": "Прочитать выделенный текст вслух",
-        "description": "Произносит выделенный текст вслух"
+        "message": "Pronounce selected text",
+        "description": "Pronounce selected text"
     },
     "PronounceOriginal": {
-        "message": "Прочитать исходный текст",
-        "description": "Произносит исходный текст."
+        "message": "Read original text",
+        "description": "Read original text."
     },
     "PronounceTranslated": {
-        "message": "Прочитать переведённый текст",
-        "description": "Произносит переведённый текст."
+        "message": "Read translated text",
+        "description": "Read translated text."
     },
     "ClickToExpand": {
-        "message": "Нажмите, чтобы развернуть",
-        "description": "Нажмите, чтобы развернуть."
+        "message": "Click to expand",
+        "description": "Click to expand."
     },
     "ClickToFold": {
-        "message": "Нажмите, чтобы свернуть",
-        "description": "Нажмите, чтобы свернуть."
+        "message": "Click to fold",
+        "description": "Click to fold."
     },
     "EditText": {
-        "message": "Редактировать текст",
-        "description": "Редактировать выделенный текст."
+        "message": "Edit text",
+        "description": "Edit selected text."
     },
     "Retranslate": {
-        "message": "Перевести заново",
-        "description": "Перевести отредактированный текст заново."
+        "message": "Re-translate",
+        "description": "Re-translate the edited text."
     },
     "CopyResult": {
-        "message": "Скопировать результат",
-        "description": "Скопировать результат перевода."
+        "message": "Copy result",
+        "description": "Copy the translation result."
     },
     "Translate": {
-        "message": "Перевод",
-        "description": "Перевод"
+        "message": "Translate",
+        "description": "Translate"
     },
     "ShortcutSetting": {
-        "message": "Настройки ярлыка",
-        "description": "Изменение ярлыков."
+        "message": "Shortcut Setting",
+        "description": "Change shortcuts."
     },
     "AddUrlBlacklist": {
-        "message": "Добавить этот сайт в чёрный список",
-        "description": "Добавление просматриваемого сайта в чёрный список."
+        "message": "Add this site to blacklist",
+        "description": "Add currently browsing site to blacklist."
     },
     "RemoveUrlBlacklist": {
-        "message": "Удалить этот сайт из чёрного списка",
-        "description": "Удаление текущего просматриваемого сайта из чёрного списка."
+        "message": "Remove this site from blacklist",
+        "description": "Remove currently browsing site from blacklist."
     },
     "AddDomainBlacklist": {
-        "message": "Добавить этот домен в чёрный список",
-        "description": "Добавление домена просматриваемого сайта в чёрный список."
+        "message": "Add this domain to blacklist",
+        "description": "Add the domain of currently browsing site to blacklist."
     },
     "RemoveDomainBlacklist": {
-        "message": "Удалить этот домен из чёрного списка",
-        "description": "Удаление домена просматриваемого сайта из чёрного списка."
+        "message": "Remove this domain from blacklist",
+        "description": "Remove the domain of currently browsing site from blacklist."
     },
     "DataCollectionNotice": {
-        "message": "Спасибо за использование Edge Translate! \nНам нужна статистика, чтобы улучшить пользовательский опыт. \nНажмите, чтобы увидеть варианты.",
-        "description": "Советы по сбору данных"
+        "message": "Thank you for using Edge Translate! \nWe need some statistics to improve user experience. \nClick to see the option.",
+        "description": "Notification of collecting statistic information."
     },
     "PrivacyPolicyLink": {
         "message": "https://github.com/EdgeTranslate/EdgeTranslate/blob/master/docs/wiki/en/PrivacyPolicy.md",
-        "description": "Ссылка на политику конфиденциальности."
+        "description": "Privacy policy link."
     },
     "ExtensionInstalled": {
-        "message": "Edge Translate установлен! Нажмите, чтобы изучить wiki!",
-        "description": "Уведомление пользователю, об успешной установке расширения."
+        "message": "Edge Translate installed successfully! Click to read the wiki!",
+        "description": "Inform user that the extension has been installed."
     },
     "WikiLink": {
         "message": "https://github.com/EdgeTranslate/EdgeTranslate/blob/master/docs/wiki/en/Introduction.md",
-        "description": "Ссылка на Wiki."
+        "description": "Wiki link."
     },
     "ExtensionUpdated": {
-        "message": "Edge Translate обновлён! Нажмите, чтобы посмотреть что нового.",
-        "description": "Уведомление пользователю, об успешном обновление расширения."
+        "message": "Edge Translate updated successfully! Click to find what's new!.",
+        "description": "Inform user that the extension has been updated."
     },
     "InputHint": {
-        "message": "Содержимое не должно быть пустым",
-        "description": "Подсказка ввода"
+        "message": "Content should not be empty",
+        "description": "Input hint"
     },
     "AutoDetect": {
-        "message": "Автоопределение",
-        "description": "Автоопределение"
+        "message": "Auto Detect",
+        "description": "Auto Detect"
     },
     "SourceLanguage": {
-        "message": "Исходный язык",
-        "description": "Исходный язык"
+        "message": "Source Language",
+        "description": "Source Language"
     },
     "TargetLanguage": {
-        "message": "Язык перевода",
-        "description": "Язык перевода"
+        "message": "Target Language",
+        "description": "Target Language"
     },
     "PermissionRemind": {
-        "message": "Чтобы использовать EdgeTranslate на этой странице, вам необходимо включить \"Разрешить доступ к URL-адресам файлов\" на странице управления расширением.",
-        "description": "Подсказка пользователю о правах доступа к URL-адресам файлов"
+        "message": "To use EdgeTranslate on this page, you need to turn on the 'Allow access to file URLs' switch in the extension management page.",
+        "description": "a hint to the user about the access to file url permission"
     },
     "ContentSettings": {
-        "message": "Настройки содержимого",
-        "description": "Выбор того, что будет отображаться в результатах перевода."
+        "message": "Content Settings",
+        "description": "Choose what to display in the translating results."
     },
     "DefaultPageTranslator": {
-        "message": "Переводчик страниц по умолчанию",
-        "description": "Переводчик страниц по умолчанию."
+        "message": "Default Page Translator",
+        "description": "Default page translator."
     },
     "LayoutSettings": {
-        "message": "Настройки макета",
-        "description": "Выбор способа отображения результатов перевода."
+        "message": "Layout Settings",
+        "description": "Choose how to display the translating results."
     },
     "PopupFromRight": {
-        "message": "Всплывающее окно справа",
-        "description": "Всплывающее окно с результатами перевода справа."
+        "message": "Popup from the right",
+        "description": "Translating results popup from the right."
     },
     "PopupFromLeft": {
-        "message": "Всплывающее окно слева",
-        "description": "Всплывающее окно с результатами перевода слева."
+        "message": "Popup from the left",
+        "description": "Translating results popup from the left."
     },
     "ResizeSetting": {
-        "message": "Изменить размер страницы",
-        "description": "Изменение размера страницы, для избежания перекрытия оригинального содержимого"
+        "message": "Resize page",
+        "description": "Resize page to avoid occlude original content."
     },
     "RTLSetting": {
-        "message": "Расположение справа налево",
-        "description": "Отображать контент справа налево на некоторых языках."
+        "message": "Right to left layout",
+        "description": "Display contents from right to left in some languages."
     },
     "FoldLongContentSetting": {
-        "message": "Скрывать очень длинное содержимое",
-        "description": "Сворачивайте слишком длинный перевод содержимого."
+        "message": "Fold long content",
+        "description": "Fold too long translation content."
     },
     "OtherSettings": {
-        "message": "Другие настройки",
-        "description": "Другие настройки расширения."
+        "message": "Other Settings",
+        "description": "Other settings of the extension."
     },
     "SelectTranslate": {
-        "message": "Включить перевод выбранного",
-        "description": "Включение или отключение перевода выбранного."
+        "message": "Enable Select Translate",
+        "description": "Enable or disable select translate."
     },
     "UsePDFjs": {
-        "message": "Использовать встроенный просмотрщик PDF",
-        "description": "Использование встроенного средства просмотра расширения .pdf, чтобы включить \"Перевод выбранного\" в файлах PDF."
+        "message": "Use Built-in PDF Viewer",
+        "description": "Use extension's built-in pdf viewer to enable selecting translate in pdf files."
     },
     "TranslateAfterSelect": {
-        "message": "Перевод после выделения",
-        "description": "Мгновенный показ результатов перевода после выделения текста."
+        "message": "Translate After Select",
+        "description": "Instantly show translating result after texts selected."
     },
     "TranslateAfterDblClick": {
-        "message": "Перевод после двойного нажатия",
-        "description": "Мгновенный показ результатов перевода после выделения двойным нажатием на текст."
+        "message": "Translate After Dbl Click",
+        "description": "Instantly show translating result after double-clicked texts."
     },
     "CancelTextSelection": {
-        "message": "Отменить выделение текста после перевода",
-        "description": "Отменить выделение текста автоматически после перевода"
+        "message": "Cancel text selection after translation",
+        "description": "Cancel text selection automatically after translation"
     },
     "GooglePageTranslate": {
-        "message": "Переводчик страниц Google",
-        "description": "Перевод текущей страницы с помощью Google Translate API."
+        "message": "Google Page Trans.",
+        "description": "Translate current page with Google translate api."
     },
     "YoudaoPageTranslate": {
-        "message": "Переводчик страниц Youdao",
-        "description": "Перевод текущей страницы с помощью веб-функции перевода Youdao."
+        "message": "Youdao Page Trans.",
+        "description": "Translate current page with Youdao translate web page feature."
     },
     "TranslatePage": {
-        "message": "Перевести эту страницу",
-        "description": "Перевод этой страницы с помощью переводчика страниц по умолчанию."
+        "message": "Translate this page",
+        "description": "Translate this page with default page translator."
     },
     "CancelPageTranslate": {
-        "message": "Отменить перевод страницы",
-        "description": "Отменить перевод страницы."
+        "message": "Cancel page translate",
+        "description": "Cancel page translate."
     },
     "TogglePageTranslateBanner": {
         "message": "Toggle page translate banner",
         "description": "Show/Hide page translator's banner."
     },
     "TranslatePageGoogle": {
-        "message": "Перевести страницу с помощью Google",
-        "description": "Перевод текущей страницы с помощью Google Translate API."
+        "message": "Translate this page with Google",
+        "description": "Translate current page with Google translate api."
     },
     "TranslatePageYoudao": {
-        "message": "Перевести страницу с помощью Youdao",
-        "description": "Перевод текущей страницы с помощью веб-функции перевода Youdao."
+        "message": "Translate this page with Youdao",
+        "description": "Translate current page with Youdao translate web feature."
     },
     "UseGoogleAnalytics": {
-        "message": "Помочь улучшить расширение",
-        "description": "Используется инструмент Google Analytics, чтобы помочь нам улучшить Edge Translate."
+        "message": "Provide statistics to help improve the extension",
+        "description": "Use Google Analytics tool to help us improve Edge Translate."
     },
     "PrivacyPolicy": {
-        "message": "Политика конфиденциальности",
-        "description": "Политика конфиденциальности."
+        "message": "Privacy Policy",
+        "description": "Privacy policy."
     },
     "Settings": {
-        "message": "Настройки",
-        "description": "Настройки"
+        "message": "Settings",
+        "description": "Settings"
     },
     "SelectTranslatePosition": {
-        "message": "Расположение кнопки перевода",
-        "description": "Расположение кнопки перевода"
+        "message": "Translation button location",
+        "description": "Select the translation button location"
     },
     "TopRight": {
-        "message": "Горе вдясно",
-        "description": "Горе вдясно"
+        "message": "Upper Right",
+        "description": "Upper Right"
     },
     "TopLeft": {
-        "message": "Горе вляво",
-        "description": "Горе вляво"
+        "message": "Upper Left",
+        "description": "Upper Left"
     },
     "BottomRight": {
-        "message": "долно дясно",
-        "description": "долно дясно"
+        "message": "Lower Right",
+        "description": "Lower Right"
     },
     "BottomLeft": {
-        "message": "Долно ляво",
-        "description": "Долно ляво"
+        "message": "Lower Left",
+        "description": "Lower Left"
     },
     "SettingsTitle": {
-        "message": "Настройки Edge Translate",
-        "description": "Страница настроек Edge Translate"
+        "message": "EdgeTranslate Settings",
+        "description": "EdgeTranslate settings page"
     },
     "MutualTranslation": {
-        "message": "Режим взаимного перевода",
-        "description": "Автоматический перевод между двумя языками"
+        "message": "Mutual translation mode",
+        "description": "Automatic translation between two languages"
     },
     "MutualTranslationWarning": {
-        "message": "Невозможно включить режим взаимного перевода, если в качестве исходного языка выбрано 'Автоопределение'",
-        "description": "Невозможно включить режим взаимного перевода, если в качестве исходного языка выбрано 'Автоопределение'"
+        "message": "You can't open mutual translation mode when source language is 'Auto Detect'",
+        "description": "You can't open mutual translation mode when source language is 'Auto Detect'"
     },
     "Fold": {
-        "message": "Свернуть настройки языка",
-        "description": "Свернуть параметры настройки языка"
+        "message": "Fold language settings",
+        "description": "Fold language setting options"
     },
     "Unfold": {
-        "message": "Развернуть настройки языка",
-        "description": "Развернуть параметры настроек языка"
+        "message": "Unfold language settings",
+        "description": "Unfold language setting options"
     },
     "HybridTranslatorConfig": {
-        "message": "Настройки источника смешанного перевода",
-        "description": "Настройка источника перевода для различных частей результатов перевода."
+        "message": "Hybrid Translator Config",
+        "description": "Config providers for each part of the translation."
     },
     "MainTranslator": {
-        "message": "Основной источник перевода:",
-        "description": "Установить основной источник перевода."
+        "message": "Main Provider",
+        "description": "Choose the main translation provider."
     },
     "DetailedTranslator": {
-        "message": "Объяснение слов:",
-        "description": "Выберите источник подробных значений слов."
+        "message": "Detailed Provider",
+        "description": "Choose the detailed meaning provider."
     },
     "DefinitionTranslator": {
-        "message": "Определение слов:",
-        "description": "Выберите источник определений слов."
+        "message": "Definition Provider",
+        "description": "Choose the definition provider."
     },
     "ExampleTranslator": {
-        "message": "Примеры слов:",
-        "description": "Выберите источник примеров слов."
+        "message": "Example Provider",
+        "description": "Choose the example provider."
     },
     "BaiduTranslate": {
-        "message": "Переводчик Baidu",
-        "description": "Переводчик Baidu"
+        "message": "Baidu Translate",
+        "description": "Baidu Translate."
     },
     "BaiduTranslateShort": {
         "message": "Baidu",
-        "description": "Переводчик Baidu"
+        "description": "Abbreviation of Baidu Translate."
     },
     "BingTranslate": {
-        "message": "Переводчик Bing",
-        "description": "Переводчик Bing"
+        "message": "Bing Translate",
+        "description": "Bing Translate."
     },
     "BingTranslateShort": {
         "message": "Bing",
-        "description": "Переводчик Bing"
+        "description": "Abbreviation of Bing Translate."
     },
     "DeepLTranslate": {
         "message": "DeepL Translate",
@@ -368,116 +368,116 @@
         "description": "Abbreviation of DeepL Translate."
     },
     "GoogleTranslate": {
-        "message": "Google Переводчик",
-        "description": "Google Переводчик"
+        "message": "Google Translate",
+        "description": "Google Translate."
     },
     "GoogleTranslateShort": {
         "message": "Google",
-        "description": "Google Переводчик"
+        "description": "Abbreviation of Google Translate."
     },
     "TencentTranslate": {
-        "message": "Переводчик Tencent",
-        "description": "Переводчик Tencent"
+        "message": "Tencent Translate",
+        "description": "Tencent Translate."
     },
     "TencentTranslateShort": {
         "message": "Tencent",
-        "description": "Переводчик Tencent"
+        "description": "Abbreviation of Tencent Translate."
     },
     "YoudaoTranslate": {
         "message": "Youdao Translate",
-        "description": "Переводчик Youdao"
+        "description": "Youdao Translate."
     },
     "YoudaoTranslateShort": {
         "message": "Youdao",
-        "description": "Переводчик Youdao"
+        "description": "Abbreviation of Youdao Translate."
     },
     "HybridTranslate": {
-        "message": "Смешанный переводчик",
-        "description": "Перевод с помощью нескольких переводчиков."
+        "message": "Hybrid Translate",
+        "description": "Translate with multiple translators."
     },
     "HybridTranslateShort": {
-        "message": "Смешанный",
-        "description": "Перевод с помощью нескольких переводчиков."
+        "message": "Hybrid",
+        "description": "Abbreviation of Hybrid Translate."
     },
     "NOTICE": {
-        "message": "Уведомление от Edge Translate",
-        "description": "Уведомление от Edge Translate"
+        "message": "Notice from Edge Translate",
+        "description": "Notice from Edge Translate"
     },
     "NoticeTitle": {
-        "message": "Почему отображается эта страница?",
-        "description": "Заголовок сообщения об уведомлении"
+        "message": "Why is this page displayed?",
+        "description": "The title of the notice message"
     },
     "NoticeReason1": {
-        "message": "Вы можете забыть обновить существующую страницу, которая должна быть переведена после установки или обновления.",
-        "description": "Первая причина сообщения уведомления"
+        "message": "You might forget to refresh the existing page that needs to be translated after installing or updating.",
+        "description": "the first reason of the notice message"
     },
     "NoticeReason2": {
-        "message": "Вы используете Edge Translate на странице, на которой наши скрипты не могут быть введены.",
-        "description": "Вторая причина сообщения уведомления"
+        "message": "You are using Edge Translate on a page in which our scripts can't be injected.",
+        "description": "the second reason of the notice message"
     },
     "NoticeExampleSites": {
-        "message": "Такие как эти сайты:",
-        "description": "Такие как эти сайты:"
+        "message": "Such as these sites:",
+        "description": "Such as these sites:"
     },
     "BlankPage": {
-        "message": "Пустая страница",
-        "description": "Пустая страница"
+        "message": "a blank page",
+        "description": "a blank page"
     },
     "NoticeReason3": {
-        "message": "Вы используете Edge Translate на странице файла, где расширение не имеет разрешения на доступ к URL-адресу файла.",
-        "description": "Третья причина сообщения уведомления"
+        "message": "You are using Edge Translate on a file page where extension doesn't have the permission to access the file URL.",
+        "description": "the third reason of the notice message"
     },
     "NoticeReason4": {
-        "message": "Наше расширение не может быть запущено на странице файла в Firefox.",
-        "description": "Четвертая причина сообщения уведомления"
+        "message": "Our extension is not allowed to run on the file page on Firefox.",
+        "description": "the fourth reason of the notice message"
     },
     "EnablePermission": {
-        "message": "Как включить?",
-        "description": "Как включить это"
+        "message": "How to enable it?",
+        "description": "How to enable it"
     },
     "OpenThisPage": {
-        "message": "Откройте эту страницу",
-        "description": "Откройте эту страницу"
+        "message": "Open this page",
+        "description": "Open this page"
     },
     "ReloadPage": {
-        "message": "Перезагрузите страницу файла",
-        "description": "Перезагрузите страницу файла"
+        "message": "Reload the file page",
+        "description": "Reload the file page."
     },
     "NoticeLinks": {
-        "message": "Ссылки",
-        "description": "Ссылки"
+        "message": "Links",
+        "description": "Links"
     },
     "WIKI": {
-        "message": "Wiki",
-        "description": "Заголовок Wiki"
+        "message": "wiki",
+        "description": "wiki title"
     },
     "BugReport": {
-        "message": "Сообщить об ошибке",
-        "description": "Сообщить об ошибке"
+        "message": "report a bug",
+        "description": "report a bug"
     },
     "NETERR": {
-        "message": "Ошибка сети! Проверьте ваше сетевое соединение.",
-        "description": "Сообщение об ошибке сети."
+        "message": "Network error! Please check your network connection.",
+        "description": "Network error message."
     },
     "APIERR": {
-        "message": "Ошибка параметров запроса. Попробуйте использовать другие переводчики или подождите немного и повторите попытку. Если перевод все еще не работает, свяжитесь с разработчиками.",
-        "description": "Ошибка параметров API."
+        "message": "Request parameters error. Please try using other translators or wait a moment and retry. If translation is still broken, please contact developers.",
+        "description": "API parameters error."
     },
     "PRONOUN_ERR": {
-        "message": "Произнесение не удалось, проверьте свою сеть или выберите другой переводчик.",
-        "description": "Сообщение об неудачном произношении."
+        "message": "Pronouncing failed, please check your network or choose another translator.",
+        "description": "Pronouncing failed message."
     },
     "ERR_CODE": {
-        "message": "Код ошибки",
-        "description": "Код ошибки."
+        "message": "Error code",
+        "description": "Error code."
     },
     "ERR_MSG": {
-        "message": "Сообщение ошибки",
-        "description": "Сообщение ошибки."
+        "message": "Error message",
+        "description": "Error message."
     },
     "ERR_ACT": {
-        "message": "Действие ошибки",
-        "description": "Действие ошибки."
+        "message": "Error action",
+        "description": "Error action."
     },
     "English": {
         "message": "English",
@@ -1324,15 +1324,15 @@
         "description": "Zulu"
     },
     "DefaultTargetLanguage": {
-        "message": "Язык перевода по умолчанию (целевой)",
+        "message": "Langue de traduction par défaut (cible)",
         "description": ""
     },
     "UILanguage": {
-        "message": "Язык интерфейса / UI Language",
+        "message": "Langue de l'interface / UI Language",
         "description": ""
     },
     "ApiKeyConfig": {
-        "message": "Конфигурация API ключей (автосохранение)",
+        "message": "Configuration API (sauvegarde automatique)",
         "description": ""
     },
     "TencentSecretId": {
@@ -1340,7 +1340,7 @@
         "description": ""
     },
     "TencentSecretIdPlaceholder": {
-        "message": "Введите Tencent Cloud SecretId",
+        "message": "Entrez le SecretId Tencent Cloud",
         "description": ""
     },
     "TencentSecretKey": {
@@ -1348,11 +1348,11 @@
         "description": ""
     },
     "TencentSecretKeyPlaceholder": {
-        "message": "Введите Tencent Cloud SecretKey",
+        "message": "Entrez le SecretKey Tencent Cloud",
         "description": ""
     },
     "GetApiKey": {
-        "message": "Получить API ключ: ",
+        "message": "Obtenir la clé API : ",
         "description": ""
     },
     "BaiduAppId": {
@@ -1360,75 +1360,75 @@
         "description": ""
     },
     "BaiduAppIdPlaceholder": {
-        "message": "Введите Baidu Translate APP ID",
+        "message": "Entrez l'APP ID Baidu Translate",
         "description": ""
     },
     "BaiduAppKey": {
-        "message": "Ключ Baidu Translate",
+        "message": "Clé Baidu Translate",
         "description": ""
     },
     "BaiduAppKeyPlaceholder": {
-        "message": "Введите ключ Baidu Translate",
+        "message": "Entrez la clé Baidu Translate",
         "description": ""
     },
     "GoogleProxyUrl": {
-        "message": "URL прокси Google",
+        "message": "URL du proxy Google",
         "description": ""
     },
     "GoogleProxyUrlPlaceholder": {
-        "message": "Необязательно: URL прокси для включения Google Translate",
+        "message": "Optionnel : URL du proxy pour activer Google Translate",
         "description": ""
     },
     "GoogleProxyHint": {
-        "message": "Пропустить Google если пусто, другие не затрагиваются",
+        "message": "Ignorer Google si vide, autres traducteurs non affectés",
         "description": ""
     },
     "AiModelName": {
-        "message": "Имя",
+        "message": "Nom",
         "description": ""
     },
     "AiApiUrl": {
-        "message": "API URL",
+        "message": "URL API",
         "description": ""
     },
     "AiApiKey": {
-        "message": "API ключ",
+        "message": "Clé API",
         "description": ""
     },
     "AiModelLabel": {
-        "message": "Модель",
+        "message": "Modèle",
         "description": ""
     },
     "AiModelIndex": {
-        "message": "Модель $1",
+        "message": "Modèle $1",
         "description": ""
     },
     "AiConfigHint": {
-        "message": "Поддерживает DeepSeek, Groq, OpenAI, SiliconFlow и другие OpenAI-совместимые API",
+        "message": "Prend en charge DeepSeek, Groq, OpenAI, SiliconFlow et autres API compatibles OpenAI",
         "description": ""
     },
     "AddModel": {
-        "message": "+ Добавить модель",
+        "message": "+ Ajouter un modèle",
         "description": ""
     },
     "ExportConfig": {
-        "message": "Экспорт конфигурации",
+        "message": "Exporter la configuration",
         "description": ""
     },
     "ImportConfig": {
-        "message": "Импорт конфигурации",
+        "message": "Importer la configuration",
         "description": ""
     },
     "ConfigImported": {
-        "message": "Конфигурация импортирована. Обновите страницу.",
+        "message": "Configuration importée. Veuillez actualiser la page.",
         "description": ""
     },
     "ImportFailed": {
-        "message": "Ошибка импорта: неверный формат JSON",
+        "message": "Échec de l'importation : format JSON invalide",
         "description": ""
     },
     "FreeRegister": {
-        "message": "Бесплатная регистрация: ",
+        "message": "Inscription gratuite : ",
         "description": ""
     }
 }

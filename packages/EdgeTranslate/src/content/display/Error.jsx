@@ -35,22 +35,22 @@ export default function Error(props) {
                 <StyledErrorIcon />
                 <ErrorType>
                     {props.error.errorType === "API_ERR"
-                        ? chrome.i18n.getMessage("APIERR")
-                        : chrome.i18n.getMessage("NETERR")}
+                        ? window.__i18n("APIERR")
+                        : window.__i18n("NETERR")}
                 </ErrorType>
                 <ErrorMessage>
-                    {`${chrome.i18n.getMessage("ERR_CODE")}: ${JSON.stringify(
+                    {`${window.__i18n("ERR_CODE")}: ${JSON.stringify(
                         props.error.errorCode
                     )}`}
                 </ErrorMessage>
                 <ErrorMessage>
-                    {`${chrome.i18n.getMessage("ERR_MSG")}: ${JSON.stringify(
+                    {`${window.__i18n("ERR_MSG")}: ${JSON.stringify(
                         props.error.errorMsg
                     )}`}
                 </ErrorMessage>
                 {props.error.errorAct && (
                     <ErrorMessage>
-                        {`${chrome.i18n.getMessage("ERR_ACT")}: ${JSON.stringify(
+                        {`${window.__i18n("ERR_ACT")}: ${JSON.stringify(
                             props.error.errorAct
                         )}`}
                     </ErrorMessage>

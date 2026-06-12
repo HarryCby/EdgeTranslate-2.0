@@ -1,4 +1,4 @@
-import { HybridTranslator } from "@edge_translate/translators";
+import { HybridTranslator, AITranslator } from "@edge_translate/translators";
 import { log } from "common/scripts/common.js";
 import { promiseTabs, delayPromise } from "common/scripts/promise.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
@@ -18,11 +18,18 @@ class TranslatorManager {
          * @type {Promise<Void>} Initialize configurations.
          */
         this.config_loader = getOrSetDefaultSettings(
-            ["HybridTranslatorConfig", "DefaultTranslator", "languageSetting", "OtherSettings"],
+            ["HybridTranslatorConfig", "DefaultTranslator", "languageSetting", "OtherSettings", "TencentTranslateConfig", "BaiduTranslateConfig", "YoudaoTranslateConfig", "GoogleTranslateConfig", "AIConfigs"],
             DEFAULT_SETTINGS
         ).then((configs) => {
-            // Init hybrid translator.
-            this.HYBRID_TRANSLATOR = new HybridTranslator(configs.HybridTranslatorConfig, channel);
+            // Init hybrid translator with API credentials.
+            this.HYBRID_TRANSLATOR = new HybridTranslator(
+                configs.HybridTranslatorConfig,
+                channel,
+                configs.GoogleTranslateConfig,
+                configs.TencentTranslateConfig,
+                configs.BaiduTranslateConfig,
+                configs.YoudaoTranslateConfig
+            );
 
             // Supported translators.
             this.TRANSLATORS = {
@@ -36,8 +43,10 @@ class TranslatorManager {
             // Translation language settings.
             this.LANGUAGE_SETTING = configs.languageSetting;
 
-            // The default translator to use.
             this.DEFAULT_TRANSLATOR = configs.DefaultTranslator;
+
+            // AI configs — store all for lookup by model
+            this.AI_CONFIGS = configs.AIConfigs || [];
         });
 
         /**
@@ -77,6 +86,18 @@ class TranslatorManager {
             return this.pronounce(params.pronouncing, params.text, params.language, speed);
         });
 
+        // AI context translate service — returns result directly to content script.
+        this.channel.provide("ai_context_translate", async (params) => {
+            await this.config_loader;
+            const configs = this.AI_CONFIGS || [];
+            const cfg = configs.find((c) => c.model === params.model) || configs[0];
+            if (!cfg || !cfg.apiUrl || !cfg.apiKey) {
+                throw new Error("AI API 未配置，请在设置页填写 API Key");
+            }
+            const ai = new AITranslator(cfg.apiUrl, cfg.apiKey, cfg.model);
+            return ai.translateWithContext(params.text, params.context || "", params.mainMeaning);
+        });
+
         // Get available translators service.
         this.channel.provide("get_available_translators", (params) =>
             Promise.resolve(this.getAvailableTranslators(params))
@@ -99,6 +120,11 @@ class TranslatorManager {
             executeGoogleScript(this.channel);
         });
 
+        // Youdao page translate button clicked event.
+        this.channel.on("translate_page_youdao", () => {
+            executeYoudaoPageTranslate();
+        });
+
         // Language setting updated event.
         this.channel.on("language_setting_update", this.onLanguageSettingUpdated.bind(this));
 
@@ -118,6 +144,26 @@ class TranslatorManager {
                         this.HYBRID_TRANSLATOR.useConfig(
                             changes["HybridTranslatorConfig"].newValue
                         );
+                    }
+
+                    // Live-update API credentials when user changes them in settings.
+                    if (changes["TencentTranslateConfig"]) {
+                        const c = changes["TencentTranslateConfig"].newValue;
+                        const t = this.HYBRID_TRANSLATOR.REAL_TRANSLATORS.TencentTranslate;
+                        t.secretId = c.secretId;
+                        t.secretKey = c.secretKey;
+                    }
+                    if (changes["BaiduTranslateConfig"]) {
+                        const c = changes["BaiduTranslateConfig"].newValue;
+                        const t = this.HYBRID_TRANSLATOR.REAL_TRANSLATORS.BaiduTranslate;
+                        t.appId = c.appId;
+                        t.appKey = c.appKey;
+                    }
+                    if (changes["YoudaoTranslateConfig"]) {
+                        const c = changes["YoudaoTranslateConfig"].newValue;
+                        const t = this.HYBRID_TRANSLATOR.REAL_TRANSLATORS.YoudaoTranslate;
+                        t.appKey = c.appKey;
+                        t.appSecret = c.appSecret;
                     }
 
                     if (changes["OtherSettings"]) {
@@ -240,7 +286,6 @@ class TranslatorManager {
          */
         let timestamp = new Date().getTime();
 
-        // Inform current tab translating started.
         this.channel.emitToTabs(currentTabId, "start_translating", {
             text,
             position,
@@ -267,16 +312,36 @@ class TranslatorManager {
                 }
             }
 
-            // Do translate.
-            let result = await this.TRANSLATORS[this.DEFAULT_TRANSLATOR].translate(text, sl, tl);
-            result.sourceLanguage = sl;
-            result.targetLanguage = tl;
+            // Progressive rendering: show mainMeaning ASAP, details follow.
+            const translator = this.TRANSLATORS[this.DEFAULT_TRANSLATOR];
 
-            // Send translating result to current tab.
-            this.channel.emitToTabs(currentTabId, "translating_finished", {
-                timestamp,
-                ...result,
-            });
+            if (translator.translateQuick && translator.enrich) {
+                // Phase 1: Quick translate — show immediately.
+                const quick = await translator.translateQuick(text, sl, tl);
+                quick.sourceLanguage = sl;
+                quick.targetLanguage = tl;
+                this.channel.emitToTabs(currentTabId, "translating_finished", {
+                    timestamp,
+                    ...quick,
+                });
+
+                // Phase 2: Enrich with details — update later.
+                const full = await translator.enrich(text, sl, tl, quick);
+                full.sourceLanguage = sl;
+                full.targetLanguage = tl;
+                this.channel.emitToTabs(currentTabId, "translating_finished", {
+                    timestamp,
+                    ...full,
+                });
+            } else {
+                let result = await translator.translate(text, sl, tl);
+                result.sourceLanguage = sl;
+                result.targetLanguage = tl;
+                this.channel.emitToTabs(currentTabId, "translating_finished", {
+                    timestamp,
+                    ...result,
+                });
+            }
         } catch (error) {
             // Inform current tab translating failed.
             this.channel.emitToTabs(currentTabId, "translating_error", {
@@ -320,7 +385,7 @@ class TranslatorManager {
                 lang = await this.TRANSLATORS[this.DEFAULT_TRANSLATOR].detect(text);
             }
 
-            await this.TRANSLATORS[this.DEFAULT_TRANSLATOR].pronounce(text, lang, speed).catch(
+            await this.TRANSLATORS[this.DEFAULT_TRANSLATOR].pronounce(text, lang, speed, pronouncing).catch(
                 ((error) => {
                     // API pronouncing failed, try local TTS service.
                     if (!this.localTTS.speak(text, lang, speed)) {
@@ -437,12 +502,15 @@ function translatePage(channel) {
             case "GooglePageTranslate":
                 executeGoogleScript(channel);
                 break;
+            case "YoudaoPageTranslate":
+                executeYoudaoPageTranslate();
+                break;
             default:
                 executeGoogleScript(channel);
                 break;
         }
-    });
-}
+504	    });
+505	}
 
 /**
  * 执行谷歌网页翻译相关脚本。
@@ -462,4 +530,20 @@ function executeGoogleScript(channel) {
     });
 }
 
-export { TranslatorManager, translatePage, executeGoogleScript };
+/**
+ * 执行 Edge 网页翻译 — 使用 Microsoft Translator 翻译页面。
+ */
+function executeYoudaoPageTranslate() {
+    console.log('[EdgeTranslate] executeEdgePageTranslate called');
+    promiseTabs.query({ active: true, currentWindow: true }).then((tabs) => {
+        const currentUrl = tabs[0].url;
+        // Microsoft Translator 网页翻译 (Edge 内置翻译引擎)
+        const translateUrl = `https://www.translatetheweb.com/?from=auto&to=zh-Hans&a=${encodeURIComponent(currentUrl)}`;
+        console.log('[EdgeTranslate] Opening Microsoft Translator:', translateUrl);
+        chrome.tabs.create({ url: translateUrl, active: true });
+    }).catch((err) => {
+        console.error('[EdgeTranslate] Page translate error:', err);
+    });
+}
+
+export { TranslatorManager, translatePage, executeGoogleScript, executeYoudaoPageTranslate };

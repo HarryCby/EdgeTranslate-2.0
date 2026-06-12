@@ -1,11 +1,33 @@
+# Build output
 **/build/
 **/dist/
-**/node_modules/
 **/publish/
 **/*.zip
 **/*.crx
 **/*.pem
+
+# Dependencies
+**/node_modules/
+package-lock.json
+
+# Logs
 **/npm-debug.log
+**/*.log
+
+# OS / IDE
 **/.DS_Store
 **/.idea
-**/*.log
+**/.vscode/
+*.swp
+*.swo
+*~
+
+# Local / Private
+.key/
+.claude/
+.reasonix/
+cloudflare/
+google-proxy-plan.md
+
+# Test temp files
+**/test/*.txt

@@ -3,14 +3,16 @@ import axios from "../axios";
 import { PronunciationSpeed, TranslationResult } from "../types";
 
 /**
- * Supported languages.
+ * Supported languages — mapped to Tencent Cloud TMT language codes.
+ * Reference: https://cloud.tencent.com/document/product/551/15619
  */
 const LANGUAGES: [string, string][] = [
     ["auto", "auto"],
     ["zh-CN", "zh"],
+    ["zh-TW", "zh-TW"],
     ["en", "en"],
-    ["ja", "jp"],
-    ["ko", "kr"],
+    ["ja", "ja"],
+    ["ko", "ko"],
     ["fr", "fr"],
     ["es", "es"],
     ["it", "it"],
@@ -27,52 +29,105 @@ const LANGUAGES: [string, string][] = [
 ];
 
 /**
- * Event name.
+ * HMAC-SHA256 using Web Crypto API (available in browsers and Node.js 19+).
  */
-const TENCENT_TOKEN_UPDATED = "tencent_token_updated";
+async function hmacSha256(key: ArrayBuffer, message: string): Promise<ArrayBuffer> {
+    const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        key,
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    return crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(message));
+}
 
 /**
- * This piece of code is used to watch tencent translating home page loading.
- *
- * Content scripts run in isolated worlds so they can not access window globals
- * set by the original page. Therefore we create a script element in the DOM to
- * out break the isolated world and access those globals.
- *
- * In the script element, we periodically check if qtk and qtv had been set by
- * Tencent scripts. Once they were set, we post a message to tell content script
- * about it, The content script then close the tab and ask TencentTranslator
- * to go on translating.
+ * SHA256 hex digest using Web Crypto API (available in browsers and Node.js 19+).
  */
-const HOME_PAGE_LOADING_WATCHER = `
-    let watcher = document.createElement("script");
-    watcher.textContent = \`
-        let intervalId = setInterval(() => {
-            if (window.qtk && window.qtv && window.qtk.length > 0 && window.qtv.length > 0) {
-                window.postMessage("et_tencent_token_updated", "*");
-                clearInterval(intervalId);
-            }
-        }, 50);
-    \`;
-    document.body.appendChild(watcher);
-
-    window.addEventListener("message", event => {
-        if (event.data === "et_tencent_token_updated") {
-            chrome.runtime.sendMessage(
-                JSON.stringify({
-                    type: "event",
-                    event: "${TENCENT_TOKEN_UPDATED}"
-                }),
-                () => window.close()
-            );
-        }
-    });
-`;
+async function sha256Hex(message: string): Promise<string> {
+    const hashBuffer = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(message)
+    );
+    return Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+}
 
 /**
- * Tencent translator.
+ * Generate TC3-HMAC-SHA256 signature for Tencent Cloud API.
+ */
+async function signTC3(
+    secretId: string,
+    secretKey: string,
+    action: string,
+    params: Record<string, any>
+) {
+    const endpoint = "tmt.tencentcloudapi.com";
+    const service = "tmt";
+    const timestamp = Math.floor(Date.now() / 1000);
+    const date = new Date(timestamp * 1000).toISOString().split("T")[0];
+    const payload = JSON.stringify(params);
+
+    // Step 1: Canonical Request
+    const hashedPayload = await sha256Hex(payload);
+    const httpMethod = "POST";
+    const canonicalUri = "/";
+    const canonicalQueryString = "";
+    const contentType = "application/json; charset=utf-8";
+    const canonicalHeaders = [
+        `content-type:${contentType}`,
+        `host:${endpoint}`,
+        `x-tc-action:${action.toLowerCase()}`,
+    ].join("\n") + "\n";
+    const signedHeaders = "content-type;host;x-tc-action";
+    const canonicalRequest = [
+        httpMethod,
+        canonicalUri,
+        canonicalQueryString,
+        canonicalHeaders,
+        signedHeaders,
+        hashedPayload,
+    ].join("\n");
+
+    // Step 2: String to Sign
+    const algorithm = "TC3-HMAC-SHA256";
+    const credentialScope = `${date}/${service}/tc3_request`;
+    const hashedCanonicalRequest = await sha256Hex(canonicalRequest);
+    const stringToSign = [
+        algorithm,
+        timestamp,
+        credentialScope,
+        hashedCanonicalRequest,
+    ].join("\n");
+
+    // Step 3: Sign
+    const enc = new TextEncoder();
+    const kDate = await hmacSha256(enc.encode(`TC3${secretKey}`), date);
+    const kService = await hmacSha256(new Uint8Array(kDate), service);
+    const kSigning = await hmacSha256(new Uint8Array(kService), "tc3_request");
+    const signatureBytes = await hmacSha256(new Uint8Array(kSigning), stringToSign);
+    const signature = Array.from(new Uint8Array(signatureBytes))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+    // Step 4: Authorization
+    const authorization = [
+        `${algorithm} Credential=${secretId}/${credentialScope}`,
+        `SignedHeaders=${signedHeaders}`,
+        `Signature=${signature}`,
+    ].join(", ");
+
+    return { authorization, timestamp, payload, contentType };
+}
+
+/**
+ * Tencent Cloud TMT translator.
  */
 class TencentTranslator {
-    channel: any; // communication channel
+    secretId: string;
+    secretKey: string;
 
     /**
      * Max retry times.
@@ -80,22 +135,14 @@ class TencentTranslator {
     MAX_RETRY = 1;
 
     /**
-     * Request tokens
+     * Tencent Cloud TMT API endpoint.
      */
-    qtk = "";
-    qtv = "";
+    ENDPOINT = "https://tmt.tencentcloudapi.com";
 
     /**
-     * Base url.
+     * API version.
      */
-    BASE_URL = "https://fanyi.qq.com";
-
-    /**
-     * Request headers.
-     */
-    HEADERS = {
-        // Origin: this.BASE_URL,
-    };
+    API_VERSION = "2018-03-21";
 
     /**
      * Language to translator language code.
@@ -112,331 +159,130 @@ class TencentTranslator {
      */
     AUDIO = new Audio();
 
-    constructor(channel: any) {
-        this.channel = channel;
+    constructor(secretId: string, secretKey: string) {
+        this.secretId = secretId;
+        this.secretKey = secretKey;
+    }
+
+    /**
+     * Call Tencent Cloud TMT API with TC3 signing.
+     */
+    async callAPI(action: string, params: Record<string, any>) {
+        const { authorization, timestamp, payload, contentType } = await signTC3(
+            this.secretId,
+            this.secretKey,
+            action,
+            { ...params, ProjectId: 0 }
+        );
+
+        const response = (await axios({
+            method: "POST",
+            url: this.ENDPOINT,
+            headers: {
+                "Content-Type": contentType,
+                "Host": "tmt.tencentcloudapi.com",
+                "X-TC-Action": action,
+                "X-TC-Version": this.API_VERSION,
+                "X-TC-Timestamp": String(timestamp),
+                "X-TC-Region": "ap-guangzhou",
+                "Authorization": authorization,
+            },
+            data: payload,
+        })) as AxiosResponse<any>;
+
+        if (response.data.Response.Error) {
+            const err = response.data.Response.Error;
+            throw {
+                errorType: "API_ERR",
+                errorCode: err.Code,
+                errorMsg: err.Message,
+            };
+        }
+
+        return response.data.Response;
     }
 
     /**
      * Get supported languages of this API.
-     *
-     * @returns supported languages
      */
     supportedLanguages() {
         return new Set(this.LAN_TO_CODE.keys());
     }
 
     /**
-     * Request Tencent translate home page in a new tab to update cookies.
-     *
-     * @returns request finished
-     */
-    async requestHomePage() {
-        /**
-         * Create a tab to start requesting https://fanyi.qq.com
-         */
-        const tabId: number = await new Promise((resolve, reject) =>
-            chrome.tabs.create({ url: this.BASE_URL, active: false }, (tab) => {
-                if (chrome.runtime.lastError) {
-                    reject(chrome.runtime.lastError.message);
-                    return;
-                }
-
-                resolve(tab.id!);
-            })
-        );
-
-        /**
-         * After token updated by Tencent home page, a message will be sent to background page
-         * so that TencentTranslator will know that it can go on translating.
-         */
-        await new Promise<void>((resolve, reject) =>
-            chrome.tabs.executeScript(
-                tabId,
-                {
-                    code: HOME_PAGE_LOADING_WATCHER,
-                    runAt: "document_end",
-                },
-                () => {
-                    if (chrome.runtime.lastError) {
-                        reject(chrome.runtime.lastError.message);
-
-                        // Try removing the tab and check runtime.lastError incase it has been removed.
-                        chrome.tabs.remove(tabId, () => chrome.runtime.lastError);
-                    } else {
-                        resolve();
-                    }
-                }
-            )
-        );
-
-        /**
-         * Wait until token updated.
-         */
-        await new Promise<void>((resolve) => {
-            const cancel = this.channel.on(TENCENT_TOKEN_UPDATED, () => {
-                cancel();
-                resolve();
-            });
-        });
-    }
-
-    /**
-     * Update request tokens.
-     *
-     * @returns request Promise.
-     */
-    async updateTokens() {
-        // Update cookies first.
-        await this.requestHomePage();
-
-        // Get qtk and qrv from cookies.
-        return new Promise<void>((resolve) => {
-            chrome.cookies.getAll({ url: this.BASE_URL }, (cookies) => {
-                for (let cookie of cookies) {
-                    if (cookie.name === "qtv") {
-                        this.qtv = cookie.value;
-                    } else if (cookie.name === "qtk") {
-                        this.qtk = cookie.value;
-                    }
-                }
-                resolve();
-            });
-        });
-    }
-
-    /**
-     * Parse Google translate result.
-     *
-     * @param response Google translate response
-     * @param originalText original text
-     *
-     * @returns parsed result
-     */
-    parseResult(response: any, originalText: string) {
-        // Parse original text and main meaning.
-        const result: TranslationResult = { originalText: "", mainMeaning: "" };
-        for (let record of response.translate.records) {
-            result.mainMeaning += record.targetText;
-            result.originalText += record.sourceText;
-        }
-
-        // Unescape html characters.
-        let parser = new DOMParser();
-        result.originalText = parser.parseFromString(
-            result.originalText,
-            "text/html"
-        ).documentElement.textContent!;
-        result.mainMeaning = parser.parseFromString(
-            result.mainMeaning,
-            "text/html"
-        ).documentElement.textContent!;
-
-        // In case the original text is not returned by the API.
-        if (!result.originalText || result.originalText.length <= 0) {
-            result.originalText = originalText;
-        }
-
-        if (response.suggest && response.suggest.data && response.suggest.data.length > 0) {
-            if (response.suggest.data[0].prx_ph_AmE) {
-                result.sPronunciation = response.suggest.data[0].prx_ph_AmE;
-            }
-
-            if (response.suggest.data[0].examples_json) {
-                result.examples = JSON.parse(response.suggest.data[0].examples_json).basic.map(
-                    (item: { sourceText: string; targetText: string }) => {
-                        return {
-                            source: parser.parseFromString(item.sourceText, "text/html")
-                                .documentElement.textContent,
-                            target: parser.parseFromString(item.targetText, "text/html")
-                                .documentElement.textContent,
-                        };
-                    }
-                );
-            }
-        }
-
-        if (response.dict && response.dict.abstract && response.dict.abstract.length > 0) {
-            result.detailedMeanings = response.dict.abstract.map((item: any) => {
-                return {
-                    pos: item.ps,
-                    meaning: parser.parseFromString(item.explanation.join(", "), "text/html")
-                        .documentElement.textContent,
-                };
-            });
-        }
-
-        return result;
-    }
-
-    /**
      * Detect language of given text.
-     *
-     * @param text text to detect
-     *
-     * @returns detected language Promise
      */
-    async detect(text: string) {
-        const response = (await axios({
-            method: "POST",
-            baseURL: this.BASE_URL,
-            url: "/api/translate",
-            headers: this.HEADERS,
-            data: new URLSearchParams({
-                source: this.LAN_TO_CODE.get("auto"),
-                target: this.LAN_TO_CODE.get("zh-CN"),
-                sourceText: text,
-            } as Record<string, string>),
-        })) as AxiosResponse<any>;
-
-        const result = response.data.translate.source;
-        if (!result || result.length <= 0) {
-            throw {
-                errorType: "API_ERR",
-                errorCode: response.status,
-                errorMsg: "Detect failed.",
-                errorAct: {
-                    api: "tencent",
-                    action: "detect",
-                    text,
-                    from: null,
-                    to: null,
-                },
-            };
-        }
-        return this.CODE_TO_LAN.get(result);
+    async detect(text: string): Promise<string> {
+        const result = await this.callAPI("LanguageDetect", { Text: text });
+        const lang = result.Lang;
+        // TMT returns "zh" for Chinese, map to our internal code
+        if (lang === "zh") return "zh-CN";
+        if (lang === "zh-TW") return "zh-TW";
+        return lang;
     }
 
     /**
      * Translate given text.
-     *
-     * @param text text to translate
-     * @param from source language
-     * @param to target language
-     *
-     * @returns translation Promise
      */
     async translate(text: string, from: string, to: string) {
         let retryCount = 0;
+
         const translateOnce = async (): Promise<TranslationResult> => {
-            const response = (await axios({
-                method: "POST",
-                baseURL: this.BASE_URL,
-                url: "/api/translate",
-                headers: this.HEADERS,
-                data: new URLSearchParams({
-                    source: this.LAN_TO_CODE.get(from),
-                    target: this.LAN_TO_CODE.get(to),
-                    sourceText: text,
-                    qtv: this.qtv,
-                    qtk: this.qtk,
-                    sessionUuid: `translate_uuid${new Date().getTime()}`,
-                } as Record<string, string>),
-            })) as AxiosResponse<any>;
+            try {
+                const result = await this.callAPI("TextTranslate", {
+                    SourceText: text,
+                    Source: this.LAN_TO_CODE.get(from) || "auto",
+                    Target: this.LAN_TO_CODE.get(to) || "zh",
+                });
 
-            // Succeed flag.
-            let succeeded = false;
+                const parsed: TranslationResult = {
+                    originalText: text,
+                    mainMeaning: result.TargetText,
+                };
 
-            if (response.data.dict) {
-                // Translated text is a word with detailed meanings.
-                succeeded = true;
-            } else if (
-                response.data.translate &&
-                response.data.translate.records[0].targetText.length > 0 &&
-                (text.trim().indexOf(" ") > -1 || retryCount >= this.MAX_RETRY)
-            ) {
-                // Translated text is either a word without detailed meanings or a sentence.
-                succeeded = true;
-            }
+                return parsed;
+            } catch (error: any) {
+                // Retry on auth/network errors
+                if (retryCount < this.MAX_RETRY) {
+                    retryCount++;
+                    return translateOnce();
+                }
 
-            // Translate succeeded.
-            if (succeeded) return this.parseResult(response.data, text);
-
-            // Retry.
-            if (retryCount < this.MAX_RETRY) {
-                retryCount++;
-                return await this.updateTokens().then(translateOnce);
-            }
-
-            throw {
-                errorType: "API_ERR",
-                errorCode: response.status,
-                errorMsg: "Translate failed.",
-                errorAct: {
+                error.errorAct = {
                     api: "tencent",
                     action: "translate",
                     text,
                     from,
                     to,
-                },
-            };
+                };
+                throw error;
+            }
         };
 
-        // Update tokens first.
-        if (this.qtk.length === 0 || this.qtv.length === 0) await this.updateTokens();
-
-        return await translateOnce();
+        return translateOnce();
     }
 
     /**
      * Pronounce given text.
      *
-     * @param text text to pronounce
-     * @param language language of text
-     * @param speed "fast" or "slow"
-     *
-     * @returns pronounce finished
+     * Tencent Cloud TMT does not provide a free TTS API, so pronunciation
+     * will fall back to the local TTS engine in the extension.
      */
-    // eslint-disable-next-line no-unused-vars
-    pronounce(text: string, language: string, _speed: PronunciationSpeed) {
-        // Pause audio in case that it's playing.
-        this.stopPronounce();
-
-        let retryCount = 0;
-        const pronounceOnce = async (): Promise<void> => {
-            try {
-                // Get Tencent guid.
-                let guid = await new Promise((resolve, reject) => {
-                    chrome.cookies.get({ url: this.BASE_URL, name: "fy_guid" }, (cookie) => {
-                        if (!cookie || !cookie.value) {
-                            reject("Tencent guid not found!");
-                            return;
-                        }
-                        resolve(cookie.value);
-                    });
-                });
-
-                // Construct src url.
-                this.AUDIO.src = `${
-                    this.BASE_URL
-                }/api/tts?platform=PC_Website&lang=${this.LAN_TO_CODE.get(
-                    language
-                )}&text=${encodeURIComponent(text)}&guid=${guid}`;
-
-                await this.AUDIO.play();
-            } catch (error: any) {
-                // Update cookies on failure.
-                if (retryCount < this.MAX_RETRY) {
-                    retryCount++;
-                    await this.requestHomePage();
-                    return pronounceOnce();
-                }
-
-                // TODO: handle NET_ERR and API_ERR differently.
-                throw {
-                    errorType: "NET_ERR",
-                    errorCode: 0,
-                    errorMsg: error.message,
-                    errorAct: {
-                        api: "tencent",
-                        action: "pronounce",
-                        text,
-                        from: language,
-                        to: null,
-                    },
-                };
-            }
+    async pronounce(text: string, language: string, speed: PronunciationSpeed) {
+        void speed; // TMT has no free TTS — unused but required by interface
+        // Throw a NET_ERR so the extension falls back to local TTS.
+        throw {
+            errorType: "NET_ERR",
+            errorCode: 0,
+            errorMsg: "Tencent TTS not available, use local TTS instead.",
+            errorAct: {
+                api: "tencent",
+                action: "pronounce",
+                text,
+                from: language,
+                to: null,
+            },
         };
-        return pronounceOnce();
     }
 
     /**

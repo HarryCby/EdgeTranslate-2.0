@@ -1,6 +1,7 @@
 import Channel from "common/scripts/channel.js";
-import { i18nHTML } from "common/scripts/common.js";
+import { i18nHTML, i18nMsg, loadI18nMessages } from "common/scripts/common.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
+import { LANGUAGES } from "@edge_translate/translators";
 
 /**
  * Communication channel.
@@ -10,12 +11,16 @@ const channel = new Channel();
 /**
  * 初始化设置列表
  */
-window.onload = () => {
-    i18nHTML();
+window.onload = async () => {
+    // 先加载自定义 i18n 语言包
+    await initI18n();
+
+    // 初始化界面语言选择器
+    initUILanguage();
 
     // 设置不同语言的隐私政策链接
     let PrivacyPolicyLink = document.getElementById("PrivacyPolicyLink");
-    PrivacyPolicyLink.setAttribute("href", chrome.i18n.getMessage("PrivacyPolicyLink"));
+    PrivacyPolicyLink.setAttribute("href", i18nMsg("PrivacyPolicyLink"));
 
     /**
      * Set up hybrid translate config.
@@ -105,6 +110,16 @@ window.onload = () => {
                         );
                     };
                     break;
+                case "text":
+                    element.value = settingItemValue || "";
+                    // update setting value on blur (save on input loses focus)
+                    element.onblur = (event) => {
+                        const settingItemPath = event.target
+                            .getAttribute("setting-path")
+                            .split(/\s/g);
+                        saveOption(result, settingItemPath, event.target.value);
+                    };
+                    break;
                 default:
                     break;
             }
@@ -135,16 +150,15 @@ function setUpTranslateConfig(config, availableTranslators) {
         for (let translator of availableTranslators) {
             if (translator === selected) {
                 ele.options.add(
-                    new Option(chrome.i18n.getMessage(translator), translator, true, true)
+                    new Option(i18nMsg(translator), translator, true, true)
                 );
             } else {
-                ele.options.add(new Option(chrome.i18n.getMessage(translator), translator));
+                ele.options.add(new Option(i18nMsg(translator), translator));
             }
         }
 
         ele.onchange = () => {
             let value = ele.options[ele.selectedIndex].value;
-            // Update every affected item.
             for (let item of affected) {
                 config.selections[item] = value;
             }
@@ -179,6 +193,203 @@ function getSetting(localSettings, settingItemPath) {
         result = result[key];
     });
     return result;
+}
+
+/**
+ * Dynamic AI configs management.
+ */
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("ai-configs-container");
+    const addBtn = document.getElementById("add-ai-config-btn");
+    if (!container || !addBtn) return;
+
+    function makeConfigHTML(cfg, idx) {
+        return `<div class="ai-config-entry" data-idx="${idx}">
+            <div class="ai-config-header">
+                <span class="ai-config-index">${i18nMsg("AiModelIndex", [String(idx + 1)])}</span>
+                <button class="ai-config-remove" data-idx="${idx}">×</button>
+            </div>
+            <div class="api-config-row">
+                <label class="api-config-label">${i18nMsg("AiModelName")}</label>
+                <input type="text" class="api-key-input ai-display-name" value="${esc(cfg.displayName || '')}" placeholder="DeepSeek" spellcheck="false" />
+            </div>
+            <div class="api-config-row">
+                <label class="api-config-label">${i18nMsg("AiApiUrl")}</label>
+                <input type="text" class="api-key-input ai-api-url" value="${esc(cfg.apiUrl || '')}" placeholder="https://api.deepseek.com" spellcheck="false" />
+            </div>
+            <div class="api-config-row">
+                <label class="api-config-label">${i18nMsg("AiApiKey")}</label>
+                <input type="password" class="api-key-input ai-api-key" value="${esc(cfg.apiKey || '')}" placeholder="sk-..." spellcheck="false" />
+            </div>
+            <div class="api-config-row">
+                <label class="api-config-label">${i18nMsg("AiModelLabel")}</label>
+                <input type="text" class="api-key-input ai-model" value="${esc(cfg.model || '')}" placeholder="deepseek-chat" spellcheck="false" />
+            </div>
+        </div>`;
+    }
+
+    function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function saveAIConfigs() {
+        const entries = container.querySelectorAll(".ai-config-entry");
+        const configs = [];
+        entries.forEach((entry) => {
+            configs.push({
+                displayName: entry.querySelector(".ai-display-name")?.value || "",
+                apiUrl: entry.querySelector(".ai-api-url")?.value || "",
+                apiKey: entry.querySelector(".ai-api-key")?.value || "",
+                model: entry.querySelector(".ai-model")?.value || "",
+            });
+        });
+        chrome.storage.sync.set({ AIConfigs: configs });
+    }
+
+    function renderAll(configs) {
+        container.innerHTML = configs.map((c, i) => makeConfigHTML(c, i)).join("");
+        // Bind remove buttons
+        container.querySelectorAll(".ai-config-remove").forEach((btn) => {
+            btn.onclick = () => {
+                const idx = parseInt(btn.dataset.idx);
+                configs.splice(idx, 1);
+                renderAll(configs);
+                saveAIConfigs();
+            };
+        });
+        // Bind input changes
+        container.querySelectorAll("input").forEach((inp) => {
+            inp.onblur = () => saveAIConfigs();
+        });
+    }
+
+    // Load existing configs
+    chrome.storage.sync.get(["AIConfigs"], (result) => {
+        const configs = result.AIConfigs || [];
+        renderAll(configs);
+    });
+
+    // Add button
+    addBtn.onclick = () => {
+        chrome.storage.sync.get(["AIConfigs"], (result) => {
+            const configs = result.AIConfigs || [];
+            configs.push({ displayName: "", apiUrl: "", apiKey: "", model: "" });
+            renderAll(configs);
+            saveAIConfigs();
+        });
+    };
+});
+
+/**
+ * Export API keys to a JSON file.
+ */
+document.addEventListener("DOMContentLoaded", () => {
+    const exportBtn = document.getElementById("export-keys-btn");
+    const importBtn = document.getElementById("import-keys-btn");
+    const importFile = document.getElementById("import-keys-file");
+
+    if (exportBtn) {
+        exportBtn.onclick = () => {
+            // 导出所有 API 密钥、代理、AI 模型配置
+            const keys = ["TencentTranslateConfig", "BaiduTranslateConfig", "YoudaoTranslateConfig", "GoogleTranslateConfig", "AIConfigs"];
+            chrome.storage.sync.get(keys, (result) => {
+                const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "edge-translate-config.json";
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        };
+    }
+
+    if (importBtn && importFile) {
+        importBtn.onclick = () => importFile.click();
+        importFile.onchange = () => {
+            const file = importFile.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    chrome.storage.sync.set(config, () => {
+                        alert(i18nMsg("AppName") + "：" + i18nMsg("ConfigImported"));
+                        location.reload();
+                    });
+                } catch (err) {
+                    alert(i18nMsg("ImportFailed"));
+                }
+            };
+            reader.readAsText(file);
+        };
+    }
+});
+
+/**
+ * 初始化 i18n：加载自定义语言包，然后渲染界面
+ */
+async function initI18n() {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(["UILanguage"], async (result) => {
+            const lang = result.UILanguage || "zh_CN";
+            await loadI18nMessages(lang);
+            // 渲染 i18n 标签
+            i18nHTML();
+            // 初始化翻译语言选择器（在 i18n 加载后）
+            initDefaultLanguage();
+            resolve();
+        });
+    });
+}
+
+/**
+ * 初始化默认翻译语言选择器
+ */
+function initDefaultLanguage() {
+    const select = document.getElementById("default-target-language");
+    if (!select) return;
+
+    // 填充语言选项
+    for (let langCode in LANGUAGES) {
+        const name = i18nMsg(LANGUAGES[langCode]);
+        select.options.add(new Option(name, langCode));
+    }
+
+    // 加载当前默认语言
+    chrome.storage.sync.get(["languageSetting"], (result) => {
+        if (result.languageSetting && result.languageSetting.tl) {
+            select.value = result.languageSetting.tl;
+        }
+    });
+
+    // 保存语言变更
+    select.onchange = () => {
+        const tl = select.options[select.selectedIndex].value;
+        chrome.storage.sync.get(["languageSetting"], (result) => {
+            const langSetting = result.languageSetting || { sl: "auto" };
+            langSetting.tl = tl;
+            chrome.storage.sync.set({ languageSetting: langSetting });
+        });
+    };
+}
+
+/**
+ * 初始化界面语言选择器
+ */
+function initUILanguage() {
+    const select = document.getElementById("ui-language");
+    if (!select) return;
+
+    // 设置当前语言
+    select.value = window.__i18nLang || "zh_CN";
+
+    // 动态切换语言
+    select.onchange = async () => {
+        const lang = select.options[select.selectedIndex].value;
+        await loadI18nMessages(lang);
+        chrome.storage.sync.set({ UILanguage: lang }, () => {
+            location.reload();
+        });
+    };
 }
 
 /**

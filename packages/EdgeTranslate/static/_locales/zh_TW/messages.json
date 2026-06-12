@@ -247,6 +247,10 @@
         "message": "谷歌網頁翻譯",
         "description": "使用谷歌翻譯的api翻譯當前頁面。"
     },
+    "YoudaoPageTranslate": {
+        "message": "有道網頁翻譯",
+        "description": "使用有道翻譯的網頁翻譯功能翻譯當前頁面。"
+    },
     "TranslatePage": {
         "message": "翻譯此頁",
         "description": "使用默認網頁翻譯引擎翻譯此頁。"
@@ -262,6 +266,10 @@
     "TranslatePageGoogle": {
         "message": "使用谷歌翻譯此頁",
         "description": "使用谷歌翻譯的api翻譯當前頁面。"
+    },
+    "TranslatePageYoudao": {
+        "message": "使用有道翻譯此頁",
+        "description": "使用有道翻譯的網頁翻譯功能翻譯當前頁面。"
     },
     "UseGoogleAnalytics": {
         "message": "提供統計數據幫助我們改進插件",
@@ -374,6 +382,14 @@
     "TencentTranslateShort": {
         "message": "騰訊翻譯",
         "description": "騰訊翻譯翻譯源縮寫。"
+    },
+    "YoudaoTranslate": {
+        "message": "有道翻譯",
+        "description": "有道翻譯翻譯源。"
+    },
+    "YoudaoTranslateShort": {
+        "message": "有道翻譯",
+        "description": "有道翻譯翻譯源縮寫。"
     },
     "HybridTranslate": {
         "message": "混合翻譯",
@@ -1306,5 +1322,113 @@
     "Zulu": {
         "message": "祖魯語",
         "description": "祖魯語"
+    },
+    "DefaultTargetLanguage": {
+        "message": "默認翻譯語言（目標語言）",
+        "description": ""
+    },
+    "UILanguage": {
+        "message": "界面語言 / UI Language",
+        "description": ""
+    },
+    "ApiKeyConfig": {
+        "message": "API 密鑰配置 (密鑰將自動保存)",
+        "description": ""
+    },
+    "TencentSecretId": {
+        "message": "騰訊雲 SecretId",
+        "description": ""
+    },
+    "TencentSecretIdPlaceholder": {
+        "message": "請輸入騰訊雲 SecretId",
+        "description": ""
+    },
+    "TencentSecretKey": {
+        "message": "騰訊雲 SecretKey",
+        "description": ""
+    },
+    "TencentSecretKeyPlaceholder": {
+        "message": "請輸入騰訊雲 SecretKey",
+        "description": ""
+    },
+    "GetApiKey": {
+        "message": "獲取密鑰：",
+        "description": ""
+    },
+    "BaiduAppId": {
+        "message": "百度翻譯 APP ID",
+        "description": ""
+    },
+    "BaiduAppIdPlaceholder": {
+        "message": "請輸入百度翻譯 APP ID",
+        "description": ""
+    },
+    "BaiduAppKey": {
+        "message": "百度翻譯 密鑰",
+        "description": ""
+    },
+    "BaiduAppKeyPlaceholder": {
+        "message": "請輸入百度翻譯密鑰",
+        "description": ""
+    },
+    "GoogleProxyUrl": {
+        "message": "Google 代理地址",
+        "description": ""
+    },
+    "GoogleProxyUrlPlaceholder": {
+        "message": "可選：填入代理 URL 以啟用 Google 翻譯",
+        "description": ""
+    },
+    "GoogleProxyHint": {
+        "message": "不填則跳過 Google，不影響其他翻譯源",
+        "description": ""
+    },
+    "AiModelName": {
+        "message": "名稱",
+        "description": ""
+    },
+    "AiApiUrl": {
+        "message": "API 地址",
+        "description": ""
+    },
+    "AiApiKey": {
+        "message": "API Key",
+        "description": ""
+    },
+    "AiModelLabel": {
+        "message": "模型",
+        "description": ""
+    },
+    "AiModelIndex": {
+        "message": "模型 $1",
+        "description": ""
+    },
+    "AiConfigHint": {
+        "message": "支援 DeepSeek、Groq、OpenAI、SiliconFlow 等 OpenAI 相容 API",
+        "description": ""
+    },
+    "AddModel": {
+        "message": "+ 添加模型",
+        "description": ""
+    },
+    "ExportConfig": {
+        "message": "匯出配置",
+        "description": ""
+    },
+    "ImportConfig": {
+        "message": "匯入配置",
+        "description": ""
+    },
+    "ConfigImported": {
+        "message": "配置已匯入，請重新整理頁面。",
+        "description": ""
+    },
+    "ImportFailed": {
+        "message": "匯入失敗：JSON 格式錯誤",
+        "description": ""
+    },
+    "FreeRegister": {
+        "message": "免費註冊：",
+        "description": ""
     }
 }

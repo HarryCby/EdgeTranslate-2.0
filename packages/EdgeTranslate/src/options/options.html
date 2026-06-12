@@ -21,6 +21,24 @@
                     class="setting-title i18n"
                     data-i18n-name="ContentSettings"
                 ></label>
+                <!-- 默认翻译语言 + 界面语言 -->
+                <div id="default-language-setting" class="row" style="margin-bottom:12px">
+                    <div class="column">
+                        <label for="default-target-language" class="checked-label i18n" data-i18n-name="DefaultTargetLanguage"></label>
+                        <select id="default-target-language" class="api-key-input" style="margin-top:4px"></select>
+                    </div>
+                    <div class="column">
+                        <label for="ui-language" class="checked-label i18n" data-i18n-name="UILanguage"></label>
+                        <select id="ui-language" class="api-key-input" style="margin-top:4px">
+                            <option value="zh_CN">简体中文</option>
+                            <option value="zh_TW">繁體中文</option>
+                            <option value="en">English</option>
+                            <option value="ja">日本語</option>
+                            <option value="ru">Русский</option>
+                            <option value="fr">Français</option>
+                        </select>
+                    </div>
+                </div>
                 <div id="content-settings">
                     <div class="row">
                         <div class="column">
@@ -214,26 +232,29 @@
                     </div>
                 </div>
 
+                <!-- 网页翻译功能已禁用，Edge 自带网页翻译
                 <label class="setting-title i18n" data-i18n-name="DefaultPageTranslator"></label>
                 <div class="row">
                     <div class="column">
                         <label
-                            for="google-page-translator"
+                            for="youdao-page-translator"
                             class="checked-label i18n"
-                            data-i18n-name="GooglePageTranslate"
+                            data-i18n-name="YoudaoPageTranslate"
                         >
                             <input
                                 type="radio"
-                                value="GooglePageTranslate"
+                                value="YoudaoPageTranslate"
                                 setting-type="radio"
                                 setting-path="DefaultPageTranslator"
                                 class="radio"
                                 name="default-page-translator"
-                                id="google-page-translator"
+                                id="youdao-page-translator"
+                                checked
                             />
                         </label>
                     </div>
                 </div>
+                -->
 
                 <label
                     for="layout-settings"
@@ -319,6 +340,7 @@
                                         value="BottomRight"
                                         data-i18n-name="BottomRight"
                                         class="i18n"
+                                        selected
                                     ></option>
                                     <option
                                         value="BottomLeft"
@@ -449,14 +471,153 @@
                     </div>
                 </div>
             </div>
+            <label class="setting-title i18n" data-i18n-name="ApiKeyConfig"></label>
+            <div class="api-config-section">
+                <div class="api-config-row">
+                    <label class="api-config-label i18n" for="tencent-secret-id" data-i18n-name="TencentSecretId"></label>
+                    <input
+                        type="text"
+                        setting-type="text"
+                        setting-path="TencentTranslateConfig secretId"
+                        class="api-key-input"
+                        id="tencent-secret-id"
+                        placeholder="请输入腾讯云 SecretId"
+                        spellcheck="false"
+                    />
+                </div>
+                <div class="api-config-row">
+                    <label class="api-config-label i18n" for="tencent-secret-key" data-i18n-name="TencentSecretKey"></label>
+                    <input
+                        type="password"
+                        setting-type="text"
+                        setting-path="TencentTranslateConfig secretKey"
+                        class="api-key-input"
+                        id="tencent-secret-key"
+                        placeholder="请输入腾讯云 SecretKey"
+                        spellcheck="false"
+                    />
+                </div>
+                <div class="api-config-hint">
+                    <span class="api-config-link">获取密钥：</span>
+                    <a href="https://console.cloud.tencent.com/cam/capi" target="_blank">腾讯云 API 密钥</a>
+                </div>
+
+                <div class="api-config-divider"></div>
+
+                <div class="api-config-row">
+                    <label class="api-config-label i18n" for="baidu-app-id" data-i18n-name="BaiduAppId"></label>
+                    <input
+                        type="text"
+                        setting-type="text"
+                        setting-path="BaiduTranslateConfig appId"
+                        class="api-key-input"
+                        id="baidu-app-id"
+                        placeholder="请输入百度翻译 APP ID"
+                        spellcheck="false"
+                    />
+                </div>
+                <div class="api-config-row">
+                    <label class="api-config-label i18n" for="baidu-app-key" data-i18n-name="BaiduAppKey"></label>
+                    <input
+                        type="password"
+                        setting-type="text"
+                        setting-path="BaiduTranslateConfig appKey"
+                        class="api-key-input"
+                        id="baidu-app-key"
+                        placeholder="请输入百度翻译密钥"
+                        spellcheck="false"
+                    />
+                </div>
+                <div class="api-config-hint">
+                    <span class="api-config-link">获取密钥：</span>
+                    <a href="https://api.fanyi.baidu.com/" target="_blank">百度翻译开放平台</a>
+                </div>
+
+                <div class="api-config-divider"></div>
+
+                <!-- 有道 API 配置 (未使用，已注释)
+                <div class="api-config-row">
+                    <label class="api-config-label" for="youdao-app-key">有道 应用ID</label>
+                    <input
+                        type="text"
+                        setting-type="text"
+                        setting-path="YoudaoTranslateConfig appKey"
+                        class="api-key-input"
+                        id="youdao-app-key"
+                        placeholder="请输入有道智云 AppKey"
+                        spellcheck="false"
+                    />
+                </div>
+                <div class="api-config-row">
+                    <label class="api-config-label" for="youdao-app-secret">有道 应用密钥</label>
+                    <input
+                        type="password"
+                        setting-type="text"
+                        setting-path="YoudaoTranslateConfig appSecret"
+                        class="api-key-input"
+                        id="youdao-app-secret"
+                        placeholder="请输入有道智云 AppSecret"
+                        spellcheck="false"
+                    />
+                </div>
+                <div class="api-config-hint">
+                    <span class="api-config-link">获取密钥：</span>
+                    <a href="https://ai.youdao.com/" target="_blank">有道智云开放平台</a>
+                </div>
+                -->
+
+                <div class="api-config-divider"></div>
+
+                <div class="api-config-row">
+                    <label class="api-config-label i18n" for="google-proxy-url" data-i18n-name="GoogleProxyUrl"></label>
+                    <input
+                        type="text"
+                        setting-type="text"
+                        setting-path="GoogleTranslateConfig proxyUrl"
+                        class="api-key-input"
+                        id="google-proxy-url"
+                        placeholder="可选：填入代理 URL 以启用 Google 翻译"
+                        spellcheck="false"
+                    />
+                </div>
+                <div class="api-config-hint">
+                    <span>不填则跳过 Google，不影响其他翻译源</span>
+                </div>
+
+                <div class="api-config-divider"></div>
+
+                <div id="ai-configs-section">
+                    <div class="api-config-hint" style="margin-bottom:8px">
+                        <span>支持 DeepSeek、Groq、OpenAI、SiliconFlow 等 OpenAI 兼容 API</span>
+                        <span class="api-config-link" style="margin-left:10px">免费注册：</span>
+                        <a href="https://platform.deepseek.com/" target="_blank">DeepSeek</a>
+                    </div>
+                    <div id="ai-configs-container"></div>
+                    <button id="add-ai-config-btn" class="api-add-btn">+ 添加模型</button>
+                </div>
+
+                <div class="api-config-divider"></div>
+                <div class="api-config-actions">
+                    <button id="export-keys-btn" class="api-btn">导出配置</button>
+                    <button id="import-keys-btn" class="api-btn">导入配置</button>
+                    <input type="file" id="import-keys-file" accept=".json" style="display:none" />
+                </div>
+            </div>
+
             <footer>
-                ©2018-2022
+                <span class="space"></span>
                 <a href="https://github.com/EdgeTranslate/EdgeTranslate" target="blank">
                     Edge Translate
                 </a>
                 <span class="space"></span>
                 Powered by
-                <a href="https://translate.google.cn" target="blank"> Google Translate </a>
+                <a href="https://translate.google.com" target="blank">Google Translate</a>
+                <span class="space"></span>
+                <a href="https://fanyi.youdao.com/" target="blank">有道翻译</a>
+                <span class="space"></span>
+                <a href="https://fanyi.baidu.com/" target="blank">百度翻译</a>
+                <span class="space"></span>
+                <a href="https://translate.tencent.com/" target="blank">腾讯翻译</a>
             </footer>
         </div>
     </body>

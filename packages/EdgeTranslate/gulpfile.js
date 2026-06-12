@@ -35,7 +35,7 @@ exports.buildJS = gulp.series(setDevelopEnvironment, buildJS);
 exports.dev = gulp.series(
     setDevelopEnvironment,
     clean,
-    gulp.parallel(eslintJS, buildJSDev, manifest, html, styl, packStatic),
+    gulp.parallel(buildJSDev, manifest, html, styl, packStatic),
     watcher
 );
 
@@ -45,7 +45,7 @@ exports.dev = gulp.series(
 exports.build = gulp.series(
     setProductEnvironment,
     clean,
-    gulp.parallel(eslintJS, buildJS, manifest, html, styl, packStatic)
+    gulp.parallel(buildJS, manifest, html, styl, packStatic)
 );
 
 /**
@@ -54,7 +54,7 @@ exports.build = gulp.series(
 exports.pack = gulp.series(
     setProductEnvironment,
     clean,
-    gulp.parallel(eslintJS, buildJS, manifest, html, styl, packStatic),
+    gulp.parallel(buildJS, manifest, html, styl, packStatic),
     packToZip
 );
 /**

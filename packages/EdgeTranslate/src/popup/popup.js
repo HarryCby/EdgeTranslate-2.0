@@ -1,6 +1,6 @@
 import { LANGUAGES } from "@edge_translate/translators";
 import Channel from "common/scripts/channel.js";
-import { i18nHTML } from "common/scripts/common.js";
+import { i18nHTML, i18nMsg, loadI18nMessages } from "common/scripts/common.js";
 import { DEFAULT_SETTINGS, getOrSetDefaultSettings } from "common/scripts/settings.js";
 
 /**
@@ -19,13 +19,14 @@ let mutualTranslate = document.getElementById("mutual-translate");
 /**
  * 初始化设置列表
  */
-window.onload = function () {
-    i18nHTML();
+window.onload = async function () {
+    // 加载自定义 i18n 语言包
+    await initPopupI18n();
 
     let arrowUp = document.getElementById("arrow-up");
     let arrowDown = document.getElementById("arrow-down");
-    arrowDown.setAttribute("title", chrome.i18n.getMessage("Unfold"));
-    arrowUp.setAttribute("title", chrome.i18n.getMessage("Fold"));
+    arrowDown.setAttribute("title", i18nMsg("Unfold"));
+    arrowUp.setAttribute("title", i18nMsg("Fold"));
 
     sourceLanguage.onchange = function () {
         // 如果源语言是自动判断语言类型(值是auto),则按钮显示灰色，避免用户点击,如果不是，则显示蓝色，可以点击
@@ -67,7 +68,7 @@ window.onload = function () {
             // 根据源语言设定更新
             if (languageSetting.sl === "auto") {
                 mutualTranslate.disabled = true;
-                mutualTranslate.parentElement.title = chrome.i18n.getMessage(
+                mutualTranslate.parentElement.title = i18nMsg(
                     "MutualTranslationWarning"
                 );
                 if (OtherSettings["MutualTranslate"]) {
@@ -82,7 +83,7 @@ window.onload = function () {
             // languages是可选的源语言和目标语言的列表
             for (let language in LANGUAGES) {
                 let value = language;
-                let name = chrome.i18n.getMessage(LANGUAGES[language]);
+                let name = i18nMsg(LANGUAGES[language]);
 
                 if (languageSetting && value == languageSetting.sl) {
                     sourceLanguage.options.add(new Option(name, value, true, true));
@@ -140,12 +141,26 @@ function updateLanguageSetting(sourceLanguage, targetLanguage) {
     if (sourceLanguage === "auto") {
         mutualTranslate.checked = false;
         mutualTranslate.disabled = true;
-        mutualTranslate.parentElement.title = chrome.i18n.getMessage("MutualTranslationWarning");
+        mutualTranslate.parentElement.title = i18nMsg("MutualTranslationWarning");
         mutualTranslate.onchange();
     } else if (mutualTranslate.disabled) {
         mutualTranslate.disabled = false;
         mutualTranslate.parentElement.title = "";
     }
+}
+
+/**
+ * 初始化 popup i18n
+ */
+async function initPopupI18n() {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(["UILanguage"], async (result) => {
+            const lang = result.UILanguage || "zh_CN";
+            await loadI18nMessages(lang);
+            i18nHTML();
+            resolve();
+        });
+    });
 }
 
 /**
@@ -167,8 +182,12 @@ function addEventListener() {
     document.getElementById("translateSubmit").addEventListener("click", translateSubmit);
     document.addEventListener("keypress", translatePreSubmit); // 对用户按下回车按键后的事件进行监听
     document.getElementById("setting-switch").addEventListener("click", settingSwitch);
-    document.getElementById("google-page-translate").addEventListener("click", () => {
-        channel.emit("translate_page_google", {});
+    // 页面翻译功能已注释，Edge 自带网页翻译
+    // document.getElementById("youdao-page-translate").addEventListener("click", () => {
+    //     channel.emit("translate_page_youdao", {});
+    // });
+    document.getElementById("open-settings").addEventListener("click", () => {
+        chrome.runtime.openOptionsPage();
     });
 }
 

@@ -87,17 +87,14 @@ let scrollingElement = window; // store the specific scrolling element. In norma
 let scrollPropertyX = "pageXOffset";
 let scrollPropertyY = "pageYOffset";
 // store the position setting of the translation button. default: "TopLeft"
-let ButtonPositionSetting = "TopRight";
-
-// Fetch the button position setting.
-getOrSetDefaultSettings("LayoutSettings", DEFAULT_SETTINGS).then((result) => {
-    ButtonPositionSetting = result.LayoutSettings.SelectTranslatePosition;
-});
-// Update the button position setting when the setting is changed.
-chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== "sync" || !changes.LayoutSettings) return;
-    ButtonPositionSetting = changes.LayoutSettings.newValue.SelectTranslatePosition;
-});
+// Read button position from storage each time (avoids race conditions).
+function getButtonPosition() {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(["LayoutSettings"], (result) => {
+            resolve(result.LayoutSettings?.SelectTranslatePosition || "BottomRight");
+        });
+    });
+}
 
 // this listener activated when document content is loaded
 // to make selection button available ASAP
@@ -155,7 +152,7 @@ window.addEventListener("DOMContentLoaded", () => {
             ) {
                 translateSubmit();
             } else if (OtherSettings["SelectTranslate"]) {
-                showButton(event);
+                showButton(event).catch(() => {});
             }
         });
     }
@@ -179,18 +176,13 @@ function buttonClickHandler(event) {
 /**
  * Use this function to show the translation buttion.
  */
-function showButton(event) {
-    document.documentElement.appendChild(translationButtonContainer);
+async function showButton(event) {
+    const pos = await getButtonPosition();
 
     const OffsetXValue = 10,
         OffsetYValue = 20;
     let XBias, YBias;
-    switch (ButtonPositionSetting) {
-        default:
-        case "TopRight":
-            XBias = OffsetXValue;
-            YBias = -OffsetYValue - translationButtonContainer.clientHeight;
-            break;
+    switch (pos) {
         case "TopLeft":
             XBias = -OffsetXValue - translationButtonContainer.clientWidth;
             YBias = -OffsetYValue - translationButtonContainer.clientHeight;
@@ -203,7 +195,13 @@ function showButton(event) {
             XBias = -OffsetXValue - translationButtonContainer.clientWidth;
             YBias = OffsetYValue;
             break;
+        default: // TopRight
+            XBias = OffsetXValue;
+            YBias = -OffsetYValue - translationButtonContainer.clientHeight;
+            break;
     }
+
+    document.documentElement.appendChild(translationButtonContainer);
 
     let XPosition = event.x + XBias;
     let YPosition = event.y + YBias;
@@ -238,15 +236,10 @@ function getSelection() {
     if (selection.rangeCount > 0) {
         text = selection.toString().trim();
         if (isPDFjsPDFViewer()) {
-            /**
-             * pdf.js adds \n at the end of every line and breaks down single sentences into multiple lines.
-             * Thus we have to replace \n with space to improve translation.
-             */
             text = text.replace(/\n/g, " ");
         }
 
         const lastRange = selection.getRangeAt(selection.rangeCount - 1);
-        // If the user selects something in a shadow dom, the endContainer will be the HTML element and the position will be [0,0]. In this situation, we set the position undefined to avoid relocating the result panel.
         if (lastRange.endContainer !== document.documentElement) {
             let rect = selection.getRangeAt(selection.rangeCount - 1).getBoundingClientRect();
             position = [rect.left, rect.top];

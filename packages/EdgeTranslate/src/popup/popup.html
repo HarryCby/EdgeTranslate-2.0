@@ -17,9 +17,11 @@
                 for="translate_input"
                 data-i18n-name="InputHint"
             ></label>
+            <!-- 页面翻译功能已注释，Edge 自带网页翻译
             <div class="row" id="page-translate">
-                <a id="google-page-translate" class="i18n" data-i18n-name="GooglePageTranslate"></a>
+                <a id="youdao-page-translate" class="i18n" data-i18n-name="YoudaoPageTranslate"></a>
             </div>
+            -->
             <div id="setting">
                 <div class="row" style="justify-content: space-between">
                     <label
@@ -44,7 +46,8 @@
                     <i
                         class="translate-icon translate-icon-exchange"
                         id="exchange"
-                        title="交换两种语言"
+                        title=""
+                        data-i18n-title="ExchangeSourceAndTargetLanguage"
                     ></i>
                     <div class="col">
                         <div class="selection">
@@ -60,11 +63,11 @@
         </div>
 
         <footer>
-            ©2018-2022
-            <a href="https://github.com/EdgeTranslate/EdgeTranslate" target="blank">
-                Edge Translate
-            </a>
-        </footer>
+                <a href="https://github.com/EdgeTranslate/EdgeTranslate" target="blank">
+                    Edge Translate
+                </a>
+                <span id="open-settings" title="" data-i18n-title="Settings">⚙</span>
+            </footer>
     </body>
 
     <script src="./popup.js"></script>

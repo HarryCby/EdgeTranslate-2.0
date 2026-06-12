@@ -116,6 +116,8 @@ const LANGUAGES: [string, string][] = [
  * Google translate interface.
  */
 class GoogleTranslator {
+    proxyUrl: string;
+
     // tk需要的密钥
     TKK = [434217, 1534559001];
 
@@ -133,6 +135,10 @@ class GoogleTranslator {
      */
     TRANSLATE_URL = `${this.HOST}translate_a/single?client=gtx&dj=1&dt=t&dt=at&dt=bd&dt=ex&dt=md&dt=rw&dt=ss&dt=rm`;
     TTS_URL = `${this.HOST}translate_tts?client=gtx`;
+
+    constructor(proxyUrl?: string) {
+        this.proxyUrl = proxyUrl || "";
+    }
 
     /**
      * Fallback translate API.
@@ -265,32 +271,20 @@ class GoogleTranslator {
      * @returns the URL
      */
     generateDetectURL(text: string) {
-        let query = "&sl=auto&tl=zh-cn";
-        query += `&tk=${this.generateTK(text, this.TKK[0], this.TKK[1])}&q=${encodeURIComponent(
-            text
-        )}`;
-
-        if (this.fallBacking) return this.FALLBACK_TRANSLATE_URL + query;
-        return this.TRANSLATE_URL + query;
+        const base = this.proxyUrl || this.HOST;
+        const query = `&sl=auto&tl=zh-cn&tk=${this.generateTK(text, this.TKK[0], this.TKK[1])}&q=${encodeURIComponent(text)}`;
+        const path = this.fallBacking ? `translate_a/single?ie=UTF-8&client=webapp&otf=1&ssel=0&tsel=0&kc=5&dt=t&dt=at&dt=bd&dt=ex&dt=md&dt=rw&dt=ss&dt=rm` : `translate_a/single?client=gtx&dj=1&dt=t&dt=at&dt=bd&dt=ex&dt=md&dt=rw&dt=ss&dt=rm`;
+        return base + path + query;
     }
 
     /**
      * Generate translating URL.
-     *
-     * @param text text to translate
-     * @param from source language
-     * @param to target language
-     *
-     * @returns the URL
      */
     generateTranslateURL(text: string, from: string, to: string) {
-        let query = `&sl=${this.LAN_TO_CODE.get(from)}&tl=${this.LAN_TO_CODE.get(to)}`;
-        query += `&tk=${this.generateTK(text, this.TKK[0], this.TKK[1])}&q=${encodeURIComponent(
-            text
-        )}`;
-
-        if (this.fallBacking) return this.FALLBACK_TRANSLATE_URL + query;
-        return this.TRANSLATE_URL + query;
+        const base = this.proxyUrl || this.HOST;
+        const query = `&sl=${this.LAN_TO_CODE.get(from)}&tl=${this.LAN_TO_CODE.get(to)}&tk=${this.generateTK(text, this.TKK[0], this.TKK[1])}&q=${encodeURIComponent(text)}`;
+        const path = this.fallBacking ? `translate_a/single?ie=UTF-8&client=webapp&otf=1&ssel=0&tsel=0&kc=5&dt=t&dt=at&dt=bd&dt=ex&dt=md&dt=rw&dt=ss&dt=rm` : `translate_a/single?client=gtx&dj=1&dt=t&dt=at&dt=bd&dt=ex&dt=md&dt=rw&dt=ss&dt=rm`;
+        return base + path + query;
     }
 
     /**
@@ -610,12 +604,9 @@ class GoogleTranslator {
     async pronounce(text: string, language: string, speed: PronunciationSpeed) {
         this.stopPronounce();
         let speedValue = speed === "fast" ? "0.8" : "0.2";
+        const base = this.proxyUrl || this.HOST;
 
-        this.AUDIO.src = `${
-            this.fallBacking ? this.FALLBACK_TTS_URL : this.TTS_URL
-        }&q=${encodeURIComponent(text)}&tl=${this.LAN_TO_CODE.get(
-            language
-        )}&ttsspeed=${speedValue}&tk=${this.generateTK(text, this.TKK[0], this.TKK[1])}`;
+        this.AUDIO.src = `${base}translate_tts?ie=UTF-8&client=webapp&q=${encodeURIComponent(text)}&tl=${this.LAN_TO_CODE.get(language)}&ttsspeed=${speedValue}&tk=${this.generateTK(text, this.TKK[0], this.TKK[1])}`;
 
         try {
             await this.AUDIO.play();

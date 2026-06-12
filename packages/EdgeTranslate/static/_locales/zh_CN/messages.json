@@ -247,6 +247,10 @@
         "message": "谷歌网页翻译",
         "description": "使用谷歌翻译的api翻译当前页面。"
     },
+    "YoudaoPageTranslate": {
+        "message": "Edge 网页翻译",
+        "description": "使用 Microsoft Translator 翻译当前页面。"
+    },
     "TranslatePage": {
         "message": "翻译此页",
         "description": "使用默认网页翻译引擎翻译此页。"
@@ -262,6 +266,10 @@
     "TranslatePageGoogle": {
         "message": "使用谷歌翻译此页",
         "description": "使用谷歌翻译的api翻译当前页面。"
+    },
+    "TranslatePageYoudao": {
+        "message": "使用 Edge 翻译此页",
+        "description": "使用 Microsoft Translator 翻译当前页面。"
     },
     "UseGoogleAnalytics": {
         "message": "提供统计数据帮助我们改进插件",
@@ -374,6 +382,14 @@
     "TencentTranslateShort": {
         "message": "腾讯翻译",
         "description": "腾讯翻译翻译源缩写。"
+    },
+    "YoudaoTranslate": {
+        "message": "有道翻译",
+        "description": "有道翻译翻译源。"
+    },
+    "YoudaoTranslateShort": {
+        "message": "有道翻译",
+        "description": "有道翻译翻译源缩写。"
     },
     "HybridTranslate": {
         "message": "混合翻译",
@@ -1306,5 +1322,117 @@
     "Zulu": {
         "message": "祖鲁语",
         "description": "祖鲁语"
+    },
+    "DefaultTargetLanguage": {
+        "message": "默认翻译语言（目标语言）",
+        "description": "设置默认的目标翻译语言"
+    },
+    "UILanguage": {
+        "message": "界面语言 / UI Language",
+        "description": "设置插件的显示语言"
+    },
+    "ApiKeyConfig": {
+        "message": "API 密钥配置 (密钥将自动保存)",
+        "description": "API密钥配置区域的标题"
+    },
+    "TencentSecretId": {
+        "message": "腾讯云 SecretId",
+        "description": "腾讯云API的SecretId标签"
+    },
+    "TencentSecretIdPlaceholder": {
+        "message": "请输入腾讯云 SecretId",
+        "description": "腾讯云SecretId输入框占位符"
+    },
+    "TencentSecretKey": {
+        "message": "腾讯云 SecretKey",
+        "description": "腾讯云API的SecretKey标签"
+    },
+    "TencentSecretKeyPlaceholder": {
+        "message": "请输入腾讯云 SecretKey",
+        "description": "腾讯云SecretKey输入框占位符"
+    },
+    "GetApiKey": {
+        "message": "获取密钥：",
+        "description": "获取API密钥的链接文本"
+    },
+    "BaiduAppId": {
+        "message": "百度翻译 APP ID",
+        "description": "百度翻译APP ID标签"
+    },
+    "BaiduAppIdPlaceholder": {
+        "message": "请输入百度翻译 APP ID",
+        "description": "百度翻译APP ID输入框占位符"
+    },
+    "BaiduAppKey": {
+        "message": "百度翻译 密钥",
+        "description": "百度翻译密钥标签"
+    },
+    "BaiduAppKeyPlaceholder": {
+        "message": "请输入百度翻译密钥",
+        "description": "百度翻译密钥输入框占位符"
+    },
+    "GoogleProxyUrl": {
+        "message": "Google 代理地址",
+        "description": "Google翻译代理地址标签"
+    },
+    "GoogleProxyUrlPlaceholder": {
+        "message": "可选：填入代理 URL 以启用 Google 翻译",
+        "description": "Google代理URL输入框占位符"
+    },
+    "GoogleProxyHint": {
+        "message": "不填则跳过 Google，不影响其他翻译源",
+        "description": "Google代理提示"
+    },
+    "AiModelName": {
+        "message": "名称",
+        "description": "AI模型名称标签"
+    },
+    "AiApiUrl": {
+        "message": "API 地址",
+        "description": "AI API地址标签"
+    },
+    "AiApiKey": {
+        "message": "API Key",
+        "description": "AI API密钥标签"
+    },
+    "AiModelLabel": {
+        "message": "模型",
+        "description": "AI模型标签"
+    },
+    "AiModelIndex": {
+        "message": "模型 $1",
+        "description": "AI模型索引，$1为数字"
+    },
+    "AiConfigHint": {
+        "message": "支持 DeepSeek、Groq、OpenAI、SiliconFlow 等 OpenAI 兼容 API",
+        "description": "AI配置区域的提示文字"
+    },
+    "AddModel": {
+        "message": "+ 添加模型",
+        "description": "添加AI模型按钮"
+    },
+    "ExportConfig": {
+        "message": "导出配置",
+        "description": "导出配置按钮"
+    },
+    "ImportConfig": {
+        "message": "导入配置",
+        "description": "导入配置按钮"
+    },
+    "ConfigImported": {
+        "message": "配置已导入，请刷新页面。",
+        "description": "配置导入成功提示"
+    },
+    "ImportFailed": {
+        "message": "导入失败：JSON 格式错误",
+        "description": "配置导入失败提示"
+    },
+    "FreeRegister": {
+        "message": "免费注册：",
+        "description": "免费注册链接文本"
+    },
+    "YoudaoApiConfig": {
+        "message": "有道 应用ID",
+        "description": "有道API应用ID标签"
     }
 }
