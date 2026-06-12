@@ -33,11 +33,12 @@ A versatile Chrome/Edge extension for fast and easy translation of selected text
 
 ### For Developers (Build from Source)
 
-**Prerequisites:** Node.js 18+, npm or yarn
+**Prerequisites:** Node.js 18+, npm or yarn（详见 `requirements.txt`）
 
 ```bash
 git clone https://github.com/HarryCby/EdgeTranslate-2.0.git
 cd EdgeTranslate-2.0
+npm install -g gulp-cli   # 若未安装 gulp
 npm install
 npm run build --browser chrome
 ```
@@ -114,11 +115,12 @@ Default: **BottomRight** (bottom-right corner). Change in Options → Layout Set
 
 ### 开发者（从源码构建）
 
-**环境要求：** Node.js 18+, npm 或 yarn
+**环境要求：** Node.js 18+, npm 或 yarn（详见 `requirements.txt`）
 
 ```bash
 git clone https://github.com/HarryCby/EdgeTranslate-2.0.git
 cd EdgeTranslate-2.0
+npm install -g gulp-cli   # 若未安装 gulp
 npm install
 npm run build --browser chrome
 ```

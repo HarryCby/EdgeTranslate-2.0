@@ -1,0 +1,12 @@
+# Edge Translate 2.0 - Environment Requirements
+# Required before building the project
+
+# Runtime
+Node.js >= 18.0.0
+npm >= 9.0.0
+
+# Global tools (install via npm)
+gulp-cli
+
+# All other dependencies are in package.json
+# Run: npm install
