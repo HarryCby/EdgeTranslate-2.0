@@ -29,5 +29,5 @@ package-lock.json
 cloudflare/
 google-proxy-plan.md
 
-# Test temp files
-**/test/*.txt
+# Test files (not needed to build/run)
+**/test/
