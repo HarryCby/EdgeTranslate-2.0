@@ -33,6 +33,8 @@ A versatile Chrome/Edge extension for fast and easy translation of selected text
 
 ### For Developers (Build from Source)
 
+**Prerequisites:** Node.js 18+, npm or yarn
+
 ```bash
 git clone https://github.com/HarryCby/EdgeTranslate-2.0.git
 cd EdgeTranslate-2.0
@@ -111,6 +113,8 @@ Default: **BottomRight** (bottom-right corner). Change in Options → Layout Set
 5. 完成！点击扩展图标即可使用
 
 ### 开发者（从源码构建）
+
+**环境要求：** Node.js 18+, npm 或 yarn
 
 ```bash
 git clone https://github.com/HarryCby/EdgeTranslate-2.0.git

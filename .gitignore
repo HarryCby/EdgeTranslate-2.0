@@ -1,8 +1,8 @@
 # Build output
 **/build/
+!packages/EdgeTranslate/build/chrome.zip
 **/dist/
 **/publish/
-**/*.zip
 **/*.crx
 **/*.pem
 
