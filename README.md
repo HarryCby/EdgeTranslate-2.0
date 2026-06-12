@@ -38,7 +38,7 @@ A versatile Chrome/Edge extension for fast and easy translation of selected text
 ```bash
 git clone https://github.com/HarryCby/EdgeTranslate-2.0.git
 cd EdgeTranslate-2.0
-npm install
+npm install --legacy-peer-deps
 cd packages/EdgeTranslate
 npx gulp build --browser chrome
 ```
@@ -120,7 +120,7 @@ Default: **BottomRight** (bottom-right corner). Change in Options → Layout Set
 ```bash
 git clone https://github.com/HarryCby/EdgeTranslate-2.0.git
 cd EdgeTranslate-2.0
-npm install
+npm install --legacy-peer-deps
 cd packages/EdgeTranslate
 npx gulp build --browser chrome
 ```
