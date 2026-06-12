@@ -51,11 +51,6 @@
             "path": "./node_modules/cz-conventional-changelog"
         }
     },
-    "husky": {
-        "hooks": {
-            "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-        }
-    },
     "dependencies": {
         "@babel/core": "^7.29.7",
         "@babel/preset-env": "^7.29.7",
