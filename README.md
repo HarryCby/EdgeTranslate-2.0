@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/main/packages/EdgeTranslate/build/chrome.zip">
+  <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/master/packages/EdgeTranslate/build/chrome.zip">
     <img src="https://img.shields.io/badge/下载-chrome.zip-blue?style=for-the-badge&logo=google-chrome" alt="Download chrome.zip" />
   </a>
 </p>
@@ -184,7 +184,7 @@ npm run build --browser chrome
 </p>
 
 <p align="center">
-  <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/main/packages/EdgeTranslate/build/chrome.zip">
+  <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/master/packages/EdgeTranslate/build/chrome.zip">
     <img src="https://img.shields.io/badge/下载-chrome.zip-blue?style=for-the-badge&logo=google-chrome" alt="Download chrome.zip" />
   </a>
 </p>
