@@ -106,9 +106,6 @@ window.addEventListener("DOMContentLoaded", () => {
         scrollPropertyX = "scrollLeft";
         scrollPropertyY = "scrollTop";
     }
-    // to make the selection icon move with the mouse scrolling
-    scrollingElement.addEventListener("scroll", scrollHandler);
-
     document.addEventListener("mousedown", () => {
         disappearButton();
         // whether user take a select action
@@ -216,11 +213,6 @@ async function showButton(event) {
     translationButtonContainer.style.top = `${YPosition}px`;
     translationButtonContainer.style.left = `${XPosition}px`;
 
-    // record original position of the selection icon and the start mouse scrolling position
-    originScrollX = scrollingElement[scrollPropertyX];
-    originScrollY = scrollingElement[scrollPropertyY];
-    originPositionX = XPosition;
-    originPositionY = YPosition;
     HasButtonShown = true;
 }
 
@@ -321,20 +313,6 @@ function disappearButton() {
     if (HasButtonShown) {
         document.documentElement.removeChild(translationButtonContainer);
         HasButtonShown = false;
-    }
-}
-
-/**
- * the handler function to make the selection icon move with mouse scrolling
- * @param Event the event of scrolling
- */
-function scrollHandler() {
-    if (HasButtonShown) {
-        let distanceX = originScrollX - scrollingElement[scrollPropertyX];
-        let distanceY = originScrollY - scrollingElement[scrollPropertyY];
-
-        translationButtonContainer.style.left = `${originPositionX + distanceX}px`;
-        translationButtonContainer.style.top = `${originPositionY + distanceY}px`;
     }
 }
 

@@ -33,7 +33,7 @@ const Dropdown = forwardRef((props, ref) => {
         cloneElement(child, {
             active: child.props.eventKey === props.activeKey,
             onSelect: (eventKey, event) => {
-                if (eventKey !== props.activeKey) props.onSelect && props.onSelect(eventKey, event);
+                props.onSelect && props.onSelect(eventKey, event);
             },
         })
     );

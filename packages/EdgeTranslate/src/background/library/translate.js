@@ -98,6 +98,15 @@ class TranslatorManager {
             return ai.translateWithContext(params.text, params.context || "", params.mainMeaning);
         });
 
+        // Word lookup service for long text mode — returns result directly via request/response.
+        this.channel.provide("word_lookup", async (params) => {
+            await this.config_loader;
+            const result = await this.HYBRID_TRANSLATOR.translate(params.text, params.from || "auto", params.to || "zh-CN");
+            result.sourceLanguage = params.from || "auto";
+            result.targetLanguage = params.to || "zh-CN";
+            return result;
+        });
+
         // Get available translators service.
         this.channel.provide("get_available_translators", (params) =>
             Promise.resolve(this.getAvailableTranslators(params))
@@ -312,35 +321,63 @@ class TranslatorManager {
                 }
             }
 
-            // Progressive rendering: show mainMeaning ASAP, details follow.
-            const translator = this.TRANSLATORS[this.DEFAULT_TRANSLATOR];
+            // Check if long text mode should be used
+            // For CJK text (no spaces), count characters; for others count words
+            const hasCJK = /[一-鿿㐀-䶿]/.test(text);
+            const wordCount = hasCJK
+                ? text.replace(/\s/g, "").length  // CJK: character count
+                : text.split(/\s+/).filter(w => w.length > 0).length;
+            const hybridConfig = (await getOrSetDefaultSettings(
+                ["HybridTranslatorConfig"], DEFAULT_SETTINGS
+            )).HybridTranslatorConfig;
+            const threshold = hybridConfig.longTextThreshold || 50;
+            const isLongText = wordCount > threshold;
 
-            if (translator.translateQuick && translator.enrich) {
-                // Phase 1: Quick translate — show immediately.
-                const quick = await translator.translateQuick(text, sl, tl);
-                quick.sourceLanguage = sl;
-                quick.targetLanguage = tl;
-                this.channel.emitToTabs(currentTabId, "translating_finished", {
-                    timestamp,
-                    ...quick,
-                });
-
-                // Phase 2: Enrich with details — update later.
-                const full = await translator.enrich(text, sl, tl, quick);
-                full.sourceLanguage = sl;
-                full.targetLanguage = tl;
-                this.channel.emitToTabs(currentTabId, "translating_finished", {
-                    timestamp,
-                    ...full,
-                });
-            } else {
-                let result = await translator.translate(text, sl, tl);
+            if (isLongText) {
+                // Long text mode: hybrid uses configured source, standalone uses itself
+                const longSource = this.DEFAULT_TRANSLATOR === "HybridTranslate"
+                    ? (hybridConfig.selections.longTranslation || "BingTranslate")
+                    : this.DEFAULT_TRANSLATOR;
+                const longTranslator = this.TRANSLATORS[longSource];
+                let result = await longTranslator.translate(text, sl, tl);
                 result.sourceLanguage = sl;
                 result.targetLanguage = tl;
+                result.longTextMode = true;
                 this.channel.emitToTabs(currentTabId, "translating_finished", {
                     timestamp,
                     ...result,
                 });
+            } else {
+                // Normal mode: progressive rendering
+                const translator = this.TRANSLATORS[this.DEFAULT_TRANSLATOR];
+
+                if (translator.translateQuick && translator.enrich) {
+                    // Phase 1: Quick translate — show immediately.
+                    const quick = await translator.translateQuick(text, sl, tl);
+                    quick.sourceLanguage = sl;
+                    quick.targetLanguage = tl;
+                    this.channel.emitToTabs(currentTabId, "translating_finished", {
+                        timestamp,
+                        ...quick,
+                    });
+
+                    // Phase 2: Enrich with details — update later.
+                    const full = await translator.enrich(text, sl, tl, quick);
+                    full.sourceLanguage = sl;
+                    full.targetLanguage = tl;
+                    this.channel.emitToTabs(currentTabId, "translating_finished", {
+                        timestamp,
+                        ...full,
+                    });
+                } else {
+                    let result = await translator.translate(text, sl, tl);
+                    result.sourceLanguage = sl;
+                    result.targetLanguage = tl;
+                    this.channel.emitToTabs(currentTabId, "translating_finished", {
+                        timestamp,
+                        ...result,
+                    });
+                }
             }
         } catch (error) {
             // Inform current tab translating failed.

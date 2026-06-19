@@ -55,7 +55,10 @@ function getTrap(target: AxiosInstance, propName: string) {
 
 /**
  * Axios proxy with error handling.
+ * Default request timeout (10s) prevents hanging when a translator
+ * (e.g. Google behind GFW) never responds.
  */
+axios.defaults.timeout = 10000;
 const AxiosProxy = new Proxy<AxiosInstance>(axios, {
     apply: applyTrap,
     get: getTrap,

@@ -96,6 +96,10 @@ Default: **BottomRight** (bottom-right corner). Change in Options → Layout Set
 - ✅ Removed install/update pop-ups and auto-open pages
 - ✅ Removed Youdao page translation (use browser's built-in instead)
 - ✅ Simplified API config — auto-save, export/import all settings
+- ✅ **Hybrid phonetics fix** — source word US/UK IPA and target pinyin now display correctly regardless of which translator is the main source; falls back to YoudaoDict `fetchPhonetics` at runtime
+- ✅ **Translator timeout** — 10-second timeout per translator request (axios global + per-promise); prevents the entire translation from hanging when a translator (e.g. Google behind GFW) is unreachable
+- ✅ **Error feedback** — failed translator errors are collected and displayed as a red banner in the translation result panel
+- ✅ **Automatic config merge** — `getOrSetDefaultSettings` now deep-merges existing saved nested objects with defaults, so newly added keys (`sPronunciation`, `tPronunciation`, `targetPronunciation`, etc.) are filled in for users with old saved configs
 
 ---
 
@@ -180,6 +184,10 @@ npx gulp build --browser chrome
 - ✅ 移除安装/更新弹窗和自动打开网页
 - ✅ 移除有道网页翻译（改用浏览器自带翻译）
 - ✅ 简化 API 配置 — 自动保存、导出/导入全部设置
+- ✅ **混合音标修复** — 源词 US/UK 音标和目标词拼音现在正确显示，不依赖主翻译源的 selections 配置；运行时通过 `fetchPhonetics` 从有道词典补音标
+- ✅ **翻译器超时** — 每个翻译器请求 10 秒超时（axios 全局 + Promise 级双重保障）；防止某个翻译器（如 Google 无代理）挂起导致整个翻译卡死
+- ✅ **错误提示** — 失败的翻译器错误信息收集后在翻译结果面板顶部以红色横幅显示
+- ✅ **配置自动合并** — `getOrSetDefaultSettings` 现在对已保存的嵌套对象做深度合并，自动补上新版本新增的配置键（`sPronunciation`、`tPronunciation`、`targetPronunciation` 等）
 
 ---
 

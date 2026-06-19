@@ -331,6 +331,10 @@
         "message": "Main Provider",
         "description": "Choose the main translation provider."
     },
+    "PronunciationTranslator": {
+        "message": "Pronunciation Provider",
+        "description": "Choose the translator for audio pronunciation (only YoudaoDict has real TTS API)."
+    },
     "DetailedTranslator": {
         "message": "Detailed Provider",
         "description": "Choose the detailed meaning provider."
@@ -342,6 +346,14 @@
     "ExampleTranslator": {
         "message": "Example Provider",
         "description": "Choose the example provider."
+    },
+    "LongTranslator": {
+        "message": "Long Text Provider",
+        "description": "Choose the provider for long text translation."
+    },
+    "LongTextThreshold": {
+        "message": "Long Text Threshold (words)",
+        "description": "Word count threshold to trigger long text translation mode."
     },
     "BaiduTranslate": {
         "message": "Baidu Translate",
@@ -383,9 +395,17 @@
         "message": "Tencent",
         "description": "Abbreviation of Tencent Translate."
     },
+    "YoudaoDict": {
+        "message": "Youdao Dict",
+        "description": "Youdao Dictionary (dict API)."
+    },
+    "YoudaoDictShort": {
+        "message": "Youdao Dict",
+        "description": "Abbreviation of Youdao Dict."
+    },
     "YoudaoTranslate": {
         "message": "Youdao Translate",
-        "description": "Youdao Translate."
+        "description": "Youdao Translate (fanyi API)."
     },
     "YoudaoTranslateShort": {
         "message": "Youdao",

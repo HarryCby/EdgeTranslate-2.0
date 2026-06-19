@@ -32,16 +32,20 @@ const DEFAULT_SETTINGS = {
     DefaultTranslator: "HybridTranslate",
     DefaultPageTranslator: "YoudaoPageTranslate",
     HybridTranslatorConfig: {
-        translators: ["BingTranslate", "TencentTranslate", "BaiduTranslate", "YoudaoTranslate"],
+        translators: ["BingTranslate", "YoudaoDict", "TencentTranslate", "BaiduTranslate", "YoudaoTranslate"],
         selections: {
             originalText: "BingTranslate",
             mainMeaning: "BingTranslate",
-            tPronunciation: "YoudaoTranslate",   // 有道提供 UK 音标
-            sPronunciation: "YoudaoTranslate",  // 有道提供音标
-            detailedMeanings: "YoudaoTranslate",
+            tPronunciation: "YoudaoDict",   // 有道词典 UK 音标
+            sPronunciation: "YoudaoDict",  // 有道词典 US 音标
+            targetPronunciation: "BingTranslate",  // 目标词拼音跟随主翻译源（Bing 的 enrich 已通过 fetchPhonetics 获取）
+            detailedMeanings: "YoudaoDict",
             definitions: "BingTranslate",
-            examples: "YoudaoTranslate",
+            examples: "YoudaoDict",
+            longTranslation: "YoudaoTranslate",  // 长文翻译默认用有道翻译 (fanyi API)
         },
+        pronunciationSource: "YoudaoDict",  // 单词读音（TTS），仅有道词典有真实语音API
+        longTextThreshold: 50,  // 超过此词数触发长文模式
     },
     // Defines which contents in the translating result should be displayed.
     TranslateResultFilter: {
@@ -151,6 +155,20 @@ function getOrSetDefaultSettings(settings, defaults) {
                     }
                     result[setting] = defaults[setting];
                     updated = true;
+                } else if (
+                    typeof result[setting] === "object" &&
+                    !(result[setting] instanceof Array)
+                ) {
+                    // Deep-merge existing nested objects with defaults so that
+                    // newly added keys (e.g. sPronunciation / tPronunciation /
+                    // targetPronunciation in HybridTranslatorConfig.selections)
+                    // are filled in without overwriting user customizations.
+                    const merged = JSON.parse(JSON.stringify(result[setting]));
+                    setDefaultSettings(merged, defaults[setting]);
+                    if (JSON.stringify(merged) !== JSON.stringify(result[setting])) {
+                        result[setting] = merged;
+                        updated = true;
+                    }
                 }
             }
 

@@ -128,7 +128,7 @@ export default function Result(props) {
                                     DrawerHeight={TextContentDrawerHeight}
                                     DisableDrawer={!foldLongContent}
                                 >
-                                    {props.tPronunciation}
+                                    {props.targetPronunciation}
                                 </PronounceText>
                             )}
                         </PronounceLine>
@@ -566,13 +566,298 @@ export default function Result(props) {
         };
     }, []);
 
+    // Long text mode: simplified segment view with bidirectional highlight + word lookup
+    if (props.longTextMode) {
+        return (
+            <ThemeProvider theme={(props) => ({ ...props, textDirection })}>
+                <SegmentViewWithLookup
+                    originalText={props.originalText}
+                    mainMeaning={props.mainMeaning}
+                    textDirection={textDirection}
+                    sourceLanguage={props.sourceLanguage || "auto"}
+                    targetLanguage={props.targetLanguage || "zh-CN"}
+                />
+            </ThemeProvider>
+        );
+    }
+
     return (
         <Fragment>
             <ThemeProvider theme={(props) => ({ ...props, textDirection })}>
+                {props.errors && props.errors.length > 0 && (
+                    <ErrorBanner>
+                        {props.errors.map((e, i) => (
+                            <div key={i}>{e}</div>
+                        ))}
+                    </ErrorBanner>
+                )}
                 {contentDisplayOrder
                     .filter((content) => contentFilter[content])
                     .map((content) => CONTENTS[content])}
             </ThemeProvider>
+        </Fragment>
+    );
+}
+
+/**
+ * Split text into sentences by punctuation boundaries.
+ */
+function splitSentences(text) {
+    const parts = (text || "").split(/(?<=[.!?。！？\n])\s*/);
+    return parts.filter(s => s.trim());
+}
+
+/**
+ * Wraps SegmentView + WordLookupPanel for long text mode.
+ */
+function SegmentViewWithLookup({ originalText, mainMeaning, textDirection, sourceLanguage, targetLanguage }) {
+    const [lookupWord, setLookupWord] = useState("");
+
+    return (
+        <Fragment>
+            <SegmentView
+                originalText={originalText}
+                mainMeaning={mainMeaning}
+                textDirection={textDirection}
+                onWordClick={(word) => setLookupWord(lookupWord === word ? "" : word)}
+                lookupWord={lookupWord}
+            />
+            {lookupWord && (
+                <WordLookupPanel
+                    word={lookupWord}
+                    sourceLanguage={sourceLanguage}
+                    targetLanguage={targetLanguage}
+                />
+            )}
+        </Fragment>
+    );
+}
+
+/**
+ * Long text segment view: two big blocks with sentence-level bidirectional hover/click highlight.
+ */
+function SegmentView({ originalText, mainMeaning, textDirection, onWordClick, lookupWord }) {
+    const [pinnedIndex, setPinnedIndex] = useState(-1);
+    const [hoverIndex, setHoverIndex] = useState(-1);
+
+    const srcSentences = splitSentences(originalText);
+    const tgtSentences = splitSentences(mainMeaning);
+    const maxLen = Math.max(srcSentences.length, tgtSentences.length);
+
+    const activeIdx = hoverIndex !== -1 ? hoverIndex : pinnedIndex;
+
+    // Split text into clickable words, matching the word in lookupWord
+    const renderWords = (text, isSource) => {
+        const words = text.split(/(\s+)/);
+        return words.map((w, j) => {
+            if (/^\s+$/.test(w)) return w; // preserve whitespace
+            const trimmed = w.trim();
+            if (!trimmed) return w;
+            const isActive = lookupWord && trimmed.toLowerCase() === lookupWord.toLowerCase();
+            return (
+                <WordSpan
+                    key={j}
+                    active={isActive}
+                    onClick={(e) => { e.stopPropagation(); onWordClick && onWordClick(trimmed); }}
+                >
+                    {w}
+                </WordSpan>
+            );
+        });
+    };
+
+    return (
+        <SegmentContainer>
+            <SegmentBlock label="译文" textDirection={textDirection}>
+                {tgtSentences.map((s, i) => (
+                    <SegmentSpan
+                        key={i}
+                        active={i === activeIdx}
+                        onMouseEnter={() => setHoverIndex(i)}
+                        onMouseLeave={() => setHoverIndex(-1)}
+                        onClick={() => setPinnedIndex(pinnedIndex === i ? -1 : i)}
+                    >
+                        {renderWords(s, false)}
+                    </SegmentSpan>
+                ))}
+                {tgtSentences.length < maxLen && Array.from({ length: maxLen - tgtSentences.length }).map((_, i) => (
+                    <SegmentSpan key={`tpad-${i}`} active={false} />
+                ))}
+            </SegmentBlock>
+            <SegmentBlock label="原文" textDirection={textDirection}>
+                {srcSentences.map((s, i) => (
+                    <SegmentSpan
+                        key={i}
+                        active={i === activeIdx}
+                        onMouseEnter={() => setHoverIndex(i)}
+                        onMouseLeave={() => setHoverIndex(-1)}
+                        onClick={() => setPinnedIndex(pinnedIndex === i ? -1 : i)}
+                    >
+                        {renderWords(s, true)}
+                    </SegmentSpan>
+                ))}
+                {srcSentences.length < maxLen && Array.from({ length: maxLen - srcSentences.length }).map((_, i) => (
+                    <SegmentSpan key={`spad-${i}`} active={false} />
+                ))}
+            </SegmentBlock>
+        </SegmentContainer>
+    );
+}
+
+/**
+ * Word lookup panel: translates a single word and shows dictionary result
+ * using the same format as the normal (non-long-text) translation result.
+ */
+function WordLookupPanel({ word, sourceLanguage, targetLanguage }) {
+    const [result, setResult] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        setResult(null);
+
+        channel.request("word_lookup", {
+            text: word,
+            from: sourceLanguage,
+            to: targetLanguage,
+        }).then((data) => {
+            if (cancelled) return;
+            setResult(data?.error ? { error: data.error.message || data.error } : data);
+        }).catch((err) => {
+            if (cancelled) return;
+            setResult({ error: err?.message || String(err) });
+        }).finally(() => {
+            if (!cancelled) setLoading(false);
+        });
+
+        return () => { cancelled = true; };
+    }, [word, sourceLanguage, targetLanguage]);
+
+    if (loading || !result) {
+        return <LookupPanel><LookupLoading>查询 "{word}" 中...</LookupLoading></LookupPanel>;
+    }
+
+    if (result.error) {
+        return <LookupPanel><LookupError>查询失败: {result.error}</LookupError></LookupPanel>;
+    }
+
+    // Group detailed meanings by POS (same logic as main Result)
+    const groupedMeanings = groupMeaningsByPOS(result.detailedMeanings);
+    const [expandedSynonyms, setExpandedSynonyms] = useState({});
+    const [showDetails, setShowDetails] = useState(false);
+    const hasDetails = groupedMeanings.length > 0 || result.definitions?.length > 0 || result.examples?.length > 0;
+
+    return (
+        <Fragment>
+            <LookupPanel>
+                {/* Compact preview line — always visible, click to expand */}
+                <LookupPreview onClick={() => hasDetails && setShowDetails(!showDetails)} expandable={hasDetails}>
+                    <LookupWord>{result.originalText || word}</LookupWord>
+                    {(result.sPronunciation || result.tPronunciation) && (
+                        <LookupPhonetic>
+                            {result.sPronunciation && <span>US {result.sPronunciation}</span>}
+                            {result.tPronunciation && <span>  UK {result.tPronunciation}</span>}
+                        </LookupPhonetic>
+                    )}
+                    {result.mainMeaning && <LookupMain>{result.mainMeaning}</LookupMain>}
+                    {hasDetails && <ExpandHint>{showDetails ? "收起 ▲" : "展开 ▼"}</ExpandHint>}
+                </LookupPreview>
+            </LookupPanel>
+
+            {showDetails && (
+                <Fragment>
+
+            {/* Detailed Meanings — same format as main Result */}
+            {groupedMeanings.length > 0 && (
+                <Detail>
+                    <BlockHead>
+                        <DetailHeadSpot />
+                        <BlockHeadTitle>{window.__i18n("DetailedMeanings")}</BlockHeadTitle>
+                        <BlockSplitLine />
+                    </BlockHead>
+                    <BlockContent DrawerHeight={BlockContentDrawerHeight} DisableDrawer>
+                        {groupedMeanings.map((group, groupIndex) => (
+                            <POSGroup key={`lkp-pos-${groupIndex}`}>
+                                <POSRow>
+                                    <POSTag>{group.pos}</POSTag>
+                                    <MeaningText>{group.meanings.join("，")}</MeaningText>
+                                </POSRow>
+                                {group.synonyms.length > 0 && (
+                                    <SynonymSection>
+                                        <SynonymToggle onClick={() =>
+                                            setExpandedSynonyms((prev) => ({ ...prev, [groupIndex]: !prev[groupIndex] }))
+                                        }>
+                                            {expandedSynonyms[groupIndex] ? "收起" : `展开 ${group.synonyms.length} 个同义词`}
+                                            <ArrowIcon expanded={!!expandedSynonyms[groupIndex]} />
+                                        </SynonymToggle>
+                                        {expandedSynonyms[groupIndex] && (
+                                            <SynonymLine>
+                                                {group.synonyms.map((syn, si) => (
+                                                    <SynonymWord key={`lkp-syn-${groupIndex}-${si}`}>{syn}</SynonymWord>
+                                                ))}
+                                            </SynonymLine>
+                                        )}
+                                    </SynonymSection>
+                                )}
+                            </POSGroup>
+                        ))}
+                    </BlockContent>
+                </Detail>
+            )}
+
+            {/* Definitions — same format as main Result */}
+            {result.definitions?.length > 0 && (
+                <Definition>
+                    <BlockHead>
+                        <DefinitionHeadSpot />
+                        <BlockHeadTitle>{window.__i18n("Definitions")}</BlockHeadTitle>
+                        <BlockSplitLine />
+                    </BlockHead>
+                    <BlockContent DrawerHeight={BlockContentDrawerHeight} DisableDrawer>
+                        {result.definitions.map((def, i) => (
+                            <Fragment key={`lkp-def-${i}`}>
+                                <Position>{def.pos}</Position>
+                                <DetailMeaning>{def.meaning}</DetailMeaning>
+                                {def.example && <DefinitionExample>{`"${def.example}"`}</DefinitionExample>}
+                                {def.synonyms?.length > 0 && (
+                                    <Fragment>
+                                        <SynonymTitle>{window.__i18n("Synonyms")}</SynonymTitle>
+                                        <SynonymLine>
+                                            {def.synonyms.map((syn, si) => (
+                                                <SynonymWord key={`lkp-defsyn-${si}`}>{syn}</SynonymWord>
+                                            ))}
+                                        </SynonymLine>
+                                    </Fragment>
+                                )}
+                            </Fragment>
+                        ))}
+                    </BlockContent>
+                </Definition>
+            )}
+
+            {/* Examples — same format as main Result */}
+            {result.examples?.length > 0 && (
+                <Example>
+                    <BlockHead>
+                        <ExampleHeadSpot />
+                        <BlockHeadTitle>{window.__i18n("Examples")}</BlockHeadTitle>
+                        <BlockSplitLine />
+                    </BlockHead>
+                    <BlockContent DrawerHeight={BlockContentDrawerHeight} DisableDrawer>
+                        <ExampleList>
+                            {result.examples.map((ex, i) => (
+                                <ExampleItem key={`lkp-ex-${i}`}>
+                                    {ex.source && <ExampleSource dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ex.source, { ALLOWED_TAGS: ["b"] }) }} />}
+                                    {ex.target && <ExampleTarget dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ex.target, { ALLOWED_TAGS: ["b"] }) }} />}
+                                </ExampleItem>
+                            ))}
+                        </ExampleList>
+                    </BlockContent>
+                </Example>
+            )}
+            </Fragment>
+            )}
         </Fragment>
     );
 }
@@ -1017,6 +1302,124 @@ const ExampleTarget = styled.div`
 /**
  * STYLE FOR THE COMPONENT END
  */
+
+// ── SegmentView (long text mode) ──
+
+const SegmentContainer = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+`;
+
+const SegmentBlock = styled.div`
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fafafa;
+    line-height: 1.8;
+    font-size: 14px;
+    user-select: none;
+    cursor: default;
+    &::before {
+        content: "${(props) => props.label || ''}";
+        display: block;
+        font-size: 11px;
+        color: #8c8c8c;
+        margin-bottom: 6px;
+        font-weight: 500;
+    }
+`;
+
+const SegmentSpan = styled.span`
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 1px 2px;
+    transition: background 0.12s, color 0.12s;
+    background: ${(props) => (props.active ? "rgba(255, 235, 59, 0.5)" : "transparent")};
+    color: ${(props) => (props.active ? "#1565c0" : "inherit")};
+    &:hover {
+        background: rgba(255, 235, 59, 0.35);
+    }
+`;
+
+const WordSpan = styled.span`
+    cursor: pointer;
+    border-radius: 2px;
+    padding: 0 1px;
+    text-decoration: ${(props) => (props.active ? "underline" : "none")};
+    background: ${(props) => (props.active ? "rgba(33, 150, 243, 0.2)" : "transparent")};
+    &:hover {
+        background: rgba(33, 150, 243, 0.15);
+    }
+`;
+
+// ── WordLookupPanel ──
+
+const LookupPanel = styled.div`
+    margin-top: 12px;
+    border-radius: 8px;
+    background: #f5f8ff;
+    border: 1px solid #e3edf7;
+    overflow: hidden;
+`;
+
+const LookupLoading = styled.div`
+    color: #8c8c8c;
+    font-size: 13px;
+    padding: 10px 14px;
+`;
+
+const LookupError = styled.div`
+    color: #ff4d4f;
+    font-size: 13px;
+    padding: 10px 14px;
+`;
+
+const LookupPreview = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 14px;
+    cursor: ${(props) => (props.expandable ? "pointer" : "default")};
+    &:hover {
+        background: ${(props) => (props.expandable ? "rgba(33,150,243,0.04)" : "transparent")};
+    }
+`;
+
+const LookupWord = styled.span`
+    font-size: 15px;
+    font-weight: 600;
+    color: #1565c0;
+`;
+
+const LookupPhonetic = styled.span`
+    font-size: 12px;
+    color: #8c8c8c;
+`;
+
+const LookupMain = styled.span`
+    font-size: 14px;
+    color: #262626;
+`;
+
+const ExpandHint = styled.span`
+    font-size: 11px;
+    color: #b0b0b0;
+    margin-left: auto;
+`;
+
+const ErrorBanner = styled.div`
+    background: #fff3f3;
+    color: #d32f2f;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    line-height: 1.5;
+`;
+
+
 
 /**
  * A reducer for source pronouncing state

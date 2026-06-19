@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import axios from "../axios";
 import { PronunciationSpeed, TranslationResult } from "../types";
+import YoudaoTranslator from "./youdao";
 
 /**
  * Supported languages.
@@ -224,6 +225,12 @@ class BingTranslator {
      * Translator language code to language.
      */
     CODE_TO_LAN = new Map(LANGUAGES.map(([lan, code]) => [code, lan]));
+
+    /**
+     * Youdao dict for phonetics (US/UK IPA + pinyin).
+     * Bing only provides transliteration — not real phonetics.
+     */
+    _youdao = new YoudaoTranslator();
 
     /**
      * Audio instance.
@@ -744,9 +751,11 @@ class BingTranslator {
      */
     // eslint-disable-next-line no-unused-vars
     async enrich(text: string, _from: string, to: string, quickResult: TranslationResult): Promise<TranslationResult> {
-        void _from;
         const transResponse = this._cachedTransResponse;
         if (!transResponse) return quickResult;
+
+        // Fetch Youdao source phonetics (US/UK IPA or pinyin) in parallel with Bing lookup
+        const sourcePhoneticsP = this._youdao.fetchPhonetics(text, _from);
 
         try {
             const lookupResponse = await this.request(
@@ -756,25 +765,42 @@ class BingTranslator {
             );
             const lookupResult = this.parseLookupResult(lookupResponse, quickResult);
 
+            let result: TranslationResult;
             try {
                 const exampleResponse = await this.request(
                     this.constructExampleParams,
                     [transResponse[0].detectedLanguage.language, to, text, lookupResult.mainMeaning],
                     false
                 );
-                return this.parseExampleResult(exampleResponse, lookupResult);
+                result = this.parseExampleResult(exampleResponse, lookupResult);
             } catch {
-                return lookupResult;
+                result = lookupResult;
             }
+
+            // Source pronunciation ← Youdao (US/UK IPA for English, pinyin for Chinese)
+            const source = await sourcePhoneticsP;
+            if (source.sPronunciation) result.sPronunciation = source.sPronunciation;
+            if (source.tPronunciation) result.tPronunciation = source.tPronunciation;
+
+            // Target pronunciation: Youdao pinyin for Chinese target word
+            if (result.mainMeaning && to === "zh-CN") {
+                const targetPinyin = await this._youdao.fetchPhonetics(result.mainMeaning, to);
+                if (targetPinyin.sPronunciation) result.targetPronunciation = targetPinyin.sPronunciation;
+            }
+
+            return result;
         } catch (e) {
             console.warn("[Bing] Enrich failed, using quick result:", e);
+            const source = await sourcePhoneticsP;
+            if (source.sPronunciation) quickResult.sPronunciation = source.sPronunciation;
+            if (source.tPronunciation) quickResult.tPronunciation = source.tPronunciation;
             return quickResult;
         }
     }
 
     async translate(text: string, from: string, to: string) {
         const quick = await this.translateQuick(text, from, to);
-        return this.enrich(text, from, to, quick);
+        return this.enrich(text, from, to, quick); // enrich() handles Youdao phonetics internally
     }
 
     /**

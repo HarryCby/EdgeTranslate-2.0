@@ -25,6 +25,7 @@ class LocalTTS {
 
         this.speaking = true;
         let utter = new SpeechSynthesisUtterance(text);
+        utter.lang = language;
         utter.rate = speed === "fast" ? 1.0 : 0.6;
 
         // Set speaking to false when finished speaking.

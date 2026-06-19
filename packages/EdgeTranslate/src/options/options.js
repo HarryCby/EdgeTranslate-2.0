@@ -144,9 +144,11 @@ function setUpTranslateConfig(config, availableTranslators) {
             ele.options.remove(i - 1);
         }
 
-        // data-affected indicates items affected by this element in config.selections, they always have the same value.
-        let affected = ele.getAttribute("data-affected").split(/\s/g);
-        let selected = config.selections[affected[0]];
+        // data-config-key targets a direct config field (e.g. "pronunciationSource"),
+        // while data-affected targets config.selections fields.
+        let configKey = ele.getAttribute("data-config-key");
+        let affected = configKey ? [configKey] : ele.getAttribute("data-affected").split(/\s/g);
+        let selected = configKey ? config[configKey] : config.selections[affected[0]];
         for (let translator of availableTranslators) {
             if (translator === selected) {
                 ele.options.add(
@@ -159,11 +161,22 @@ function setUpTranslateConfig(config, availableTranslators) {
 
         ele.onchange = () => {
             let value = ele.options[ele.selectedIndex].value;
-            for (let item of affected) {
-                config.selections[item] = value;
+            if (configKey) {
+                // Direct config key (e.g. pronunciationSource) — not part of selections
+                config[configKey] = value;
+                // When pronunciation source changes, also update the corresponding
+                // selections so that IPA/phonetic data comes from the same translator.
+                if (configKey === "pronunciationSource") {
+                    config.selections["tPronunciation"] = value;
+                    config.selections["sPronunciation"] = value;
+                }
+            } else {
+                for (let item of affected) {
+                    config.selections[item] = value;
+                }
             }
 
-            // Get the new selected translator set.
+            // Rebuild the translators list from selections.
             let translators = new Set();
             config.translators = [];
             for (let item in config.selections) {

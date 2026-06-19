@@ -3,9 +3,15 @@ export type TranslationResult = {
     mainMeaning: string;
     sPronunciation?: string;
     tPronunciation?: string;
+    targetPronunciation?: string;
     detailedMeanings?: DetailedMeaning[];
     definitions?: Definition[];
     examples?: Example[];
+    longTextMode?: boolean;
+    sourceLanguage?: string;
+    targetLanguage?: string;
+    /** Collect error messages from failed translators so the UI can show them. */
+    errors?: string[];
 };
 export type DetailedMeaning = {
     pos?: string;

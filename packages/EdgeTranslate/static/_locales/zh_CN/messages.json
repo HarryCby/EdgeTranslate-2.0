@@ -331,6 +331,10 @@
         "message": "主翻译源：",
         "description": "设置主翻译源。"
     },
+    "PronunciationTranslator": {
+        "message": "单词读音：",
+        "description": "设置单词朗读的翻译源（仅有道词典有真实语音API）。"
+    },
     "DetailedTranslator": {
         "message": "单词详解：",
         "description": "设置单词详解翻译源。"
@@ -342,6 +346,14 @@
     "ExampleTranslator": {
         "message": "典型例句：",
         "description": "设置典型例句翻译源。"
+    },
+    "LongTranslator": {
+        "message": "长文翻译：",
+        "description": "设置长文本的翻译源。"
+    },
+    "LongTextThreshold": {
+        "message": "长文阈值(词数)：",
+        "description": "超过此单词数时触发长文翻译模式。"
     },
     "BaiduTranslate": {
         "message": "百度翻译",
@@ -383,9 +395,17 @@
         "message": "腾讯翻译",
         "description": "腾讯翻译翻译源缩写。"
     },
+    "YoudaoDict": {
+        "message": "有道词典",
+        "description": "有道词典翻译源（字典API）。"
+    },
+    "YoudaoDictShort": {
+        "message": "有道词典",
+        "description": "有道词典翻译源缩写。"
+    },
     "YoudaoTranslate": {
         "message": "有道翻译",
-        "description": "有道翻译翻译源。"
+        "description": "有道翻译翻译源（fanyi API，支持多语言互译）。"
     },
     "YoudaoTranslateShort": {
         "message": "有道翻译",

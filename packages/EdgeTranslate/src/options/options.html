@@ -182,10 +182,26 @@
                             <select
                                 id="main-translator"
                                 class="translator-config"
-                                data-affected="originalText mainMeaning tPronunciation sPronunciation"
+                                data-affected="originalText mainMeaning"
                             ></select>
                         </label>
                     </div>
+                    <div class="column">
+                        <label
+                            for="pronunciation-translator"
+                            class="checked-label i18n"
+                            data-i18n-name="PronunciationTranslator"
+                            data-insert-pos="afterBegin"
+                        >
+                            <select
+                                id="pronunciation-translator"
+                                class="translator-config"
+                                data-config-key="pronunciationSource"
+                            ></select>
+                        </label>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="column">
                         <label
                             for="detailed-translator"
@@ -200,8 +216,6 @@
                             ></select>
                         </label>
                     </div>
-                </div>
-                <div class="row">
                     <div class="column">
                         <label
                             for="definition-translator"
@@ -216,6 +230,8 @@
                             ></select>
                         </label>
                     </div>
+                </div>
+                <div class="row">
                     <div class="column">
                         <label
                             for="example-translator"
@@ -228,6 +244,41 @@
                                 class="translator-config"
                                 data-affected="examples"
                             ></select>
+                        </label>
+                    </div>
+                    <div class="column">
+                        <label
+                            for="long-translator"
+                            class="checked-label i18n"
+                            data-i18n-name="LongTranslator"
+                            data-insert-pos="afterBegin"
+                        >
+                            <select
+                                id="long-translator"
+                                class="translator-config"
+                                data-affected="longTranslation"
+                            ></select>
+                        </label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column">
+                    </div>
+                    <div class="column">
+                        <label
+                            for="long-text-threshold"
+                            class="checked-label i18n"
+                            data-i18n-name="LongTextThreshold"
+                            data-insert-pos="afterBegin"
+                        >
+                            <input
+                                id="long-text-threshold"
+                                type="number"
+                                min="10"
+                                max="500"
+                                setting-type="HybridTranslatorConfig"
+                                setting-path="HybridTranslatorConfig longTextThreshold"
+                            />
                         </label>
                     </div>
                 </div>
@@ -535,27 +586,26 @@
 
                 <div class="api-config-divider"></div>
 
-                <!-- 有道 API 配置 (未使用，已注释)
                 <div class="api-config-row">
-                    <label class="api-config-label" for="youdao-app-key">有道 应用ID</label>
+                    <label class="api-config-label" for="youdao-fanyi-app-key">有道翻译 AppKey</label>
                     <input
                         type="text"
                         setting-type="text"
                         setting-path="YoudaoTranslateConfig appKey"
                         class="api-key-input"
-                        id="youdao-app-key"
+                        id="youdao-fanyi-app-key"
                         placeholder="请输入有道智云 AppKey"
                         spellcheck="false"
                     />
                 </div>
                 <div class="api-config-row">
-                    <label class="api-config-label" for="youdao-app-secret">有道 应用密钥</label>
+                    <label class="api-config-label" for="youdao-fanyi-app-secret">有道翻译 AppSecret</label>
                     <input
                         type="password"
                         setting-type="text"
                         setting-path="YoudaoTranslateConfig appSecret"
                         class="api-key-input"
-                        id="youdao-app-secret"
+                        id="youdao-fanyi-app-secret"
                         placeholder="请输入有道智云 AppSecret"
                         spellcheck="false"
                     />
@@ -564,7 +614,6 @@
                     <span class="api-config-link">获取密钥：</span>
                     <a href="https://ai.youdao.com/" target="_blank">有道智云开放平台</a>
                 </div>
-                -->
 
                 <div class="api-config-divider"></div>
 
