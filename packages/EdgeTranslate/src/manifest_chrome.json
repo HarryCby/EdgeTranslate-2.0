@@ -6,7 +6,8 @@
         "cookies",
         "tabs",
         "alarms",
-        "offscreen"
+        "offscreen",
+        "webRequest"
     ],
     "host_permissions": [
         "<all_urls>"
