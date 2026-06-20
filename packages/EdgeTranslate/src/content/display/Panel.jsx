@@ -161,15 +161,6 @@ export default function ResultPanel() {
         // The translator send this request to make sure current tab can display result panel.
         channel.provide("check_availability", () => Promise.resolve());
 
-        // MV3 service worker audio playback: background sends play_audio request
-        // when chrome.tts is unavailable / fails.
-        channel.provide("play_audio", (params) => {
-            const audio = new Audio();
-            const ttsUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(params.text)}&le=${params.language || "en"}&type=2`;
-            audio.src = ttsUrl;
-            return audio.play();
-        });
-
         channel.on("start_translating", (detail) => {
             if (checkTimestamp(detail.timestamp)) {
                 window.translateResult.originalText = detail.text;

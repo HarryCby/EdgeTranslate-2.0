@@ -4,10 +4,9 @@
     "version": "2.4.3",
     "default_locale": "en",
     "background": {
-        "service_worker": "./background/background.js",
-        "type": "module"
+        "scripts": ["./background/background.js"]
     },
-    "action": {
+    "browser_action": {
         "default_popup": "./popup/popup.html",
         "default_icon": {
             "16": "icon/icon16.png",
@@ -16,7 +15,7 @@
         }
     },
     "commands": {
-        "_execute_action": {
+        "_execute_browser_action": {
             "suggested_key": {
                 "default": "Alt+Q"
             }
@@ -70,10 +69,7 @@
             "description": "__MSG_TogglePageTranslateBanner__"
         }
     },
-    "web_accessible_resources": [{
-        "resources": ["*.css", "*.png", "google/*"],
-        "matches": ["<all_urls>"]
-    }],
+    "web_accessible_resources": ["**/*.css", "**/*.png", "google/*"],
     "icons": {
         "16": "icon/icon16.png",
         "48": "icon/icon48.png",
@@ -81,7 +77,8 @@
     },
     "options_ui": {
         "page": "./options/options.html",
-        "open_in_tab": true
+        "open_in_tab": true,
+        "chrome_style": false
     },
-    "manifest_version": 3
+    "manifest_version": 2
 }

@@ -422,30 +422,14 @@ class TranslatorManager {
                 lang = await this.TRANSLATORS[this.DEFAULT_TRANSLATOR].detect(text);
             }
 
-            // In MV3 service worker, Audio() is not available.
-            // Delegate to chrome.tts or the content script.
-            const isServiceWorker = typeof Audio === "undefined";
-            if (isServiceWorker) {
-                try {
-                    await this._speakViaTTS(text, lang);
-                } catch (ttsError) {
-                    console.warn("[Translate] TTS fallback failed, trying content script audio");
-                    await this.channel.requestToTab(currentTabId, "play_audio", {
-                        text,
-                        language: lang,
-                        speed,
-                    });
-                }
-            } else {
-                await this.TRANSLATORS[this.DEFAULT_TRANSLATOR].pronounce(text, lang, speed, pronouncing).catch(
-                    ((error) => {
-                        // API pronouncing failed, try local TTS service.
-                        if (!this.localTTS.speak(text, lang, speed)) {
-                            throw error;
-                        }
-                    }).bind(this)
-                );
-            }
+            await this.TRANSLATORS[this.DEFAULT_TRANSLATOR].pronounce(text, lang, speed, pronouncing).catch(
+                ((error) => {
+                    // API pronouncing failed, try local TTS service.
+                    if (!this.localTTS.speak(text, lang, speed)) {
+                        throw error;
+                    }
+                }).bind(this)
+            );
 
             // Inform current tab pronouncing finished.
             this.channel.emitToTabs(currentTabId, "pronouncing_finished", {
@@ -462,23 +446,6 @@ class TranslatorManager {
                 timestamp,
             });
         }
-    }
-
-    /**
-     * Play audio in a service worker context using chrome.tts.
-     * Falls back to content-script audio playback if TTS fails.
-     */
-    async _speakViaTTS(text, language) {
-        return new Promise((resolve, reject) => {
-            if (!chrome.tts) return reject(new Error("chrome.tts not available"));
-            // Map our language codes to Chrome TTS voice language codes
-            const langMap = { "zh-CN": "zh-CN", "en": "en-US", "ja": "ja-JP", "ko": "ko-KR", "fr": "fr-FR", "de": "de-DE", "ru": "ru-RU", "es": "es-ES" };
-            const ttsLang = langMap[language] || language;
-            chrome.tts.speak(text, { lang: ttsLang, rate: 1.0, onEvent: (event) => {
-                if (event.type === "end" || event.type === "interrupted") resolve();
-                if (event.type === "error") reject(new Error(event.errorMessage || "TTS error"));
-            }});
-        });
     }
 
     /**

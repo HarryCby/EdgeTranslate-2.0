@@ -1,15 +1,10 @@
 /**
  * Local TTS service provider.
- * In MV3 service worker, window.speechSynthesis is not available,
- * so this class gracefully degrades.
  */
 class LocalTTS {
     constructor() {
         this.speaking = false;
-        this.synthesis = typeof window !== "undefined" && window.speechSynthesis;
-        if (!this.synthesis) {
-            console.log("[LocalTTS] speechSynthesis not available (service worker context)");
-        }
+        this.synthesis = window.speechSynthesis;
     }
 
     /**
@@ -22,7 +17,6 @@ class LocalTTS {
      * @returns {boolean} is speaking succeeded?
      */
     speak(text, language, speed) {
-        if (!this.synthesis) return false;
         // Check if the language is supported.
         if (!this.synthesis.getVoices().find((voice) => voice.lang.startsWith(language))) {
             console.log(`No voice for language: "${language}"`);
