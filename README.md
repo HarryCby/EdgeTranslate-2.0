@@ -7,12 +7,15 @@
 <p align="center">
   <strong>⬇️ 直接下载使用（无需编译）</strong>
 </p>
-
 <p align="center">
   <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/master/packages/EdgeTranslate/build/chrome.zip">
     <img src="https://img.shields.io/badge/下载-chrome.zip-blue?style=for-the-badge&logo=google-chrome" alt="Download chrome.zip" />
   </a>
+  <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/master/packages/EdgeTranslate/build/firefox.zip">
+    <img src="https://img.shields.io/badge/下载-firefox.zip-orange?style=for-the-badge&logo=firefox" alt="Download firefox.zip" />
+  </a>
 </p>
+
 ---
 
 ## English Documentation
@@ -25,7 +28,7 @@ A versatile Chrome/Edge extension for fast and easy translation of selected text
 
 **No need to build from source!** Just download and load the extension:
 
-1. Click the **⬇️ Download** button above to get `chrome.zip`
+1. Click the **⬇️ Download** button above to get `chrome.zip`(or `firefox.zip`)
 2. Unzip it to any folder (e.g., `EdgeTranslate-chrome/`)
 3. Open Edge → Settings → Extensions → **Developer mode** (toggle on)
 4. Click **Load unpacked** → select the unzipped folder
@@ -59,7 +62,7 @@ npx gulp build --browser chrome
 | **Hybrid Translator** | Combines Bing, Tencent, Baidu, Youdao for best accuracy |
 | **AI Context Translation** | DeepSeek / Groq / OpenAI — free API, smarter results |
 | **Dictionary** | Detailed meanings, pronunciation, examples |
-| **Page Translation** | Use browser's built-in translation (Edge/Chrome) |
+| **Long Text Translation** | highlights the source sentence(or translation) when its translation(or source) is selected; click any word to view its definition |
 | **i18n** | 6 UI languages: 简体中文 / 繁體中文 / English / 日本語 / Русский / Français |
 
 ### API Keys (Optional)
@@ -68,7 +71,8 @@ npx gulp build --browser chrome
 |-----|--------|------|
 | Tencent Cloud | Optional | SecretId + SecretKey |
 | Baidu Translate | Optional | AppID + AppKey |
-| Youdao Dictionary | **Removed** | Uses free dict API, no key needed |
+| Youdao Translate | Optional | AppKey + AppSecret |
+| Youdao Dictionary | Optional | Uses free dict API, no key needed |
 | Google Translate | Optional | Proxy URL only (needed behind GFW) |
 | AI Models | Optional | DeepSeek, Groq, OpenAI etc. — free tier available |
 
@@ -113,7 +117,7 @@ Default: **BottomRight** (bottom-right corner). Change in Options → Layout Set
 
 **不需要从源码构建！** 直接下载加载即可：
 
-1. 点击上方 **⬇️ 下载** 按钮，获取 `chrome.zip`
+1. 点击上方 **⬇️ 下载** 按钮，获取 `chrome.zip`(或者 `firefox.zip`)
 2. 解压到任意文件夹（如 `EdgeTranslate-chrome/`）
 3. 打开 Edge → 设置 → 扩展 → **开发人员模式**（打开开关）
 4. 点击 **加载解压缩的扩展** → 选择解压后的文件夹
@@ -147,7 +151,7 @@ npx gulp build --browser chrome
 | **混合翻译** | Bing + 腾讯 + 百度 + 有道词典，组合取最优结果 |
 | **AI 上下文翻译** | DeepSeek / Groq / OpenAI 等免费 API，翻译更智能 |
 | **词典功能** | 单词详解、音标、例句、发音 |
-| **网页翻译** | 使用浏览器自带翻译（更稳定） |
+| **长文翻译** | 支持长文自动翻译；选中译文(或原文)句子时，原文(或译文)对应句高亮；点击单词可查看释义 |
 | **国际化** | 6 种界面语言：简体中文 / 繁體中文 / English / 日本語 / Русsky / Français |
 
 ### API 密钥（可选）
@@ -156,7 +160,8 @@ npx gulp build --browser chrome
 |-----|------|------|
 | 腾讯云翻译 | 可选 | SecretId + SecretKey |
 | 百度翻译 | 可选 | APP ID + 密钥 |
-| 有道词典 | **已移除** | 使用免费词典 API，无需密钥 |
+| 有道翻译 | 可选 | AppKey + AppSecret |
+| 有道词典 | 可选 | 使用免费词典 API，无需密钥 |
 | Google 翻译 | 可选 | 仅需代理地址（无梯子时使用） |
 | AI 模型 | 可选 | DeepSeek、Groq、OpenAI 等——有免费额度 |
 
@@ -194,12 +199,15 @@ npx gulp build --browser chrome
 <p align="center">
   <strong>⬇️ 直接下载使用</strong>
 </p>
-
 <p align="center">
   <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/master/packages/EdgeTranslate/build/chrome.zip">
     <img src="https://img.shields.io/badge/下载-chrome.zip-blue?style=for-the-badge&logo=google-chrome" alt="Download chrome.zip" />
   </a>
+  <a href="https://github.com/HarryCby/EdgeTranslate-2.0/raw/master/packages/EdgeTranslate/build/firefox.zip">
+    <img src="https://img.shields.io/badge/下载-firefox.zip-orange?style=for-the-badge&logo=firefox" alt="Download firefox.zip" />
+  </a>
 </p>
+
 
 <p align="center">
   <em>本人非软件专业，潜在bug在所难免。欢迎大家使用和反馈，最好能贡献代码一起分享！</em>
