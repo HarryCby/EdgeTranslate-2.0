@@ -1,16 +1,15 @@
 {
-    "background": {
-        "persistent": true
-    },
     "permissions": [
         "notifications",
         "contextMenus",
         "storage",
         "cookies",
         "tabs",
-        "<all_urls>",
-        "webRequest",
-        "webRequestBlocking"
+        "alarms",
+        "offscreen"
+    ],
+    "host_permissions": [
+        "<all_urls>"
     ],
     "content_scripts": [
         {
@@ -34,7 +33,9 @@
             "all_frames": true
         }
     ],
-    "content_security_policy": "script-src 'self' 'unsafe-eval' chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/ chrome-extension://aibcglbfblnogfjhbcmmpobjhnomhcdo/; object-src 'self'",
-    "minimum_chrome_version": "55",
-    "homepage_url": "https://github.com/EdgeTranslate/EdgeTranslate/wiki"
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts allow-forms"
+    },
+    "minimum_chrome_version": "120"
 }
