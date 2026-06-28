@@ -45,7 +45,7 @@ const DEFAULT_SETTINGS = {
             longTranslation: "YoudaoTranslate",  // 长文翻译默认用有道翻译 (fanyi API)
         },
         pronunciationSource: "YoudaoDict",  // 单词读音（TTS），仅有道词典有真实语音API
-        longTextThreshold: 50,  // 超过此词数触发长文模式
+        longTextThreshold: 5,  // 超过此词数触发长文模式
     },
     // Defines which contents in the translating result should be displayed.
     TranslateResultFilter: {

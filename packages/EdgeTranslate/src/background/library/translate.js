@@ -330,7 +330,7 @@ class TranslatorManager {
             const hybridConfig = (await getOrSetDefaultSettings(
                 ["HybridTranslatorConfig"], DEFAULT_SETTINGS
             )).HybridTranslatorConfig;
-            const threshold = hybridConfig.longTextThreshold || 50;
+            const threshold = hybridConfig.longTextThreshold === 50 ? 5 : (hybridConfig.longTextThreshold || 5);
             const isLongText = wordCount > threshold;
 
             if (isLongText) {

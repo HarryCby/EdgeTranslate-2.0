@@ -49,14 +49,7 @@ enabled = true   # language server tools; servers launch lazily when used
 # disabled_skills = ["review"]   # hide noisy or unwanted skills
 
 [permissions]
-# Per-call gating. mode = writer fallback when no rule matches: ask|allow|deny.
-# Readers always default to allow. Precedence: deny > ask > allow > fallback.
-# Rules are "Tool" or "Tool(specifier)"; e.g. Bash(go test:*), Edit(src/**).
-mode  = "ask"
-# deny = ["Bash(rm -rf*)", "Bash(git push*)"]   # hard-blocked in every mode
-allow = ["Edit", "Bash(cd packages/translators && npx tsc --noEmit --pretty 2>&1 | head -30)", "Bash(cd packages/translators; npx tsc --noEmit --pretty 2>&1)", "Bash(cd packages/translators; npx vite build 2>&1)"]
-# ask = ["Edit(src/**)"]   # force a prompt even if otherwise allowed
-
+allow = ["Edit", "Bash(cd packages/translators && npx tsc --noEmit --pretty 2>&1 | head -30)", "Bash(cd packages/translators; npx tsc --noEmit --pretty 2>&1)", "Bash(cd packages/translators; npx vite build 2>&1)", "Bash(Get-ChildItem packages/EdgeTranslate/build/chrome/pdf -Recurse | Select-Object Name, Length | Format-Table -AutoSize)", "Bash(cd packages/EdgeTranslate; npx gulp build --browser chrome 2>&1)", "Bash(cd D:\\桌面\\work\\AIProject\\EdgeTranslate; git add -A; git commit -m \"fix: long text threshold override for users with old saved config (50->5)\"; git push)"]
 [sandbox]
 # Confine tool blast radius. File-writers (write_file/edit_file/multi_edit/move_file)
 # may only write under workspace_root (empty = current dir) and allow_write extras.
