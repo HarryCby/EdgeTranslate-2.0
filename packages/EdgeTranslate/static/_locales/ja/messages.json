@@ -231,6 +231,10 @@
         "message": "内蔵のPDFビューアを使用する",
         "description": "PDFファイルを翻訳できるようにするには、拡張機能に内蔵のPDFビューアを使用します。"
     },
+    "HighlightTranslatedWords": {
+        "message": "翻訳された単語をハイライト",
+        "description": "WebページやPDFで翻訳された単語をハイライトします。"
+    },
     "TranslateAfterSelect": {
         "message": "選択した後に翻訳する",
         "description": "テキストを選択した後、翻訳結果を即座に表示します。"

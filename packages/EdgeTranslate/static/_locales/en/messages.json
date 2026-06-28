@@ -231,6 +231,10 @@
         "message": "Use Built-in PDF Viewer",
         "description": "Use extension's built-in pdf viewer to enable selecting translate in pdf files."
     },
+    "HighlightTranslatedWords": {
+        "message": "Highlight Translated Words",
+        "description": "Highlight the translated word on the webpage or PDF."
+    },
     "TranslateAfterSelect": {
         "message": "Translate After Select",
         "description": "Instantly show translating result after texts selected."

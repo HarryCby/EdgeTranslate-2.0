@@ -231,6 +231,10 @@
         "message": "使用内置的pdf查看器",
         "description": "使用本扩展内置的pdf查看器以便在pdf文件中使用划词翻译。"
     },
+    "HighlightTranslatedWords": {
+        "message": "高亮被翻译的单词",
+        "description": "在网页或PDF中高亮标记被翻译的单词。"
+    },
     "TranslateAfterSelect": {
         "message": "划词后立即翻译",
         "description": "选中单词后立即展示翻译结果。"

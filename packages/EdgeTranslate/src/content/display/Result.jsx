@@ -147,13 +147,18 @@ export default function Result(props) {
                             dir={textDirection}
                             contenteditable={editing}
                             ref={originalTextElRef}
-                            style={{ paddingLeft: 3 }}
+                            style={{ paddingLeft: 3, cursor: "pointer" }}
+                            onClick={() => !editing && setEditing({
+                                edit: true,
+                                element: originalTextElRef.current,
+                            })}
                         >
                             {props.originalText}
                         </div>
                         {editing ? (
                             <StyledEditDoneIcon
                                 role="button"
+                                data-action="retranslate"
                                 title={window.__i18n("Retranslate")}
                                 onClick={() =>
                                     setEditing({
@@ -162,18 +167,7 @@ export default function Result(props) {
                                     })
                                 }
                             />
-                        ) : (
-                            <StyledEditIcon
-                                role="button"
-                                title={window.__i18n("EditText")}
-                                onClick={() =>
-                                    setEditing({
-                                        edit: true,
-                                        element: originalTextElRef.current,
-                                    })
-                                }
-                            />
-                        )}
+                        ) : null}
                     </TextLine>
                     {/* US pronunciation */}
                     {(displaySPronunciationIcon || displaySPronunciation) && props.sPronunciation && (
@@ -1524,6 +1518,17 @@ function copyContent(_, action) {
  * @param {Event} event keydown event.
  */
 function onKeyDownInTextEditor(event) {
+    // Enter without Shift: submit edited text and re-translate
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        submitEditedText(event.target);
+        // Click the done button to reset editing state in React
+        const btn = event.target.parentNode?.querySelector('[data-action="retranslate"]');
+        if (btn) btn.click();
+        return;
+    }
+    // Shift+Enter: allow default newline behavior
     event.stopPropagation();
 }
 

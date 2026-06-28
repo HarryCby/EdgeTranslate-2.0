@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS = {
         CancelTextSelection: false,
         UseGoogleAnalytics: true,
         UsePDFjs: true,
+        HighlightTranslatedWords: false,  // 在网页/PDF中高亮被翻译的单词
     },
     DefaultTranslator: "HybridTranslate",
     DefaultPageTranslator: "YoudaoPageTranslate",
