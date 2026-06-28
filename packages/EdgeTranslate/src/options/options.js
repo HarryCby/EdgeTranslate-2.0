@@ -110,6 +110,17 @@ window.onload = async () => {
                         );
                     };
                     break;
+                default:
+                    // Number input (e.g., long text threshold) — not pre-set by HTML type
+                    if (element.type === "number") {
+                        element.value = settingItemValue;
+                        element.onchange = (event) => {
+                            const target = event.target;
+                            const settingItemPath = target.getAttribute("setting-path").split(/\s/g);
+                            saveOption(result, settingItemPath, parseInt(target.value, 10));
+                        };
+                    }
+                    break;
                 case "text":
                     element.value = settingItemValue || "";
                     // update setting value on blur (save on input loses focus)
@@ -119,8 +130,6 @@ window.onload = async () => {
                             .split(/\s/g);
                         saveOption(result, settingItemPath, event.target.value);
                     };
-                    break;
-                default:
                     break;
             }
         }
