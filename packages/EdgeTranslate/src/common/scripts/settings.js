@@ -165,6 +165,14 @@ function getOrSetDefaultSettings(settings, defaults) {
                     // are filled in without overwriting user customizations.
                     const merged = JSON.parse(JSON.stringify(result[setting]));
                     setDefaultSettings(merged, defaults[setting]);
+
+                    // One-time migration: when a user has the old default value
+                    // for a setting that has since been updated, replace it with
+                    // the new default so the new behavior takes effect.
+                    if (setting === "HybridTranslatorConfig" && merged.longTextThreshold === 50) {
+                        merged.longTextThreshold = defaults[setting].longTextThreshold;
+                    }
+
                     if (JSON.stringify(merged) !== JSON.stringify(result[setting])) {
                         result[setting] = merged;
                         updated = true;
