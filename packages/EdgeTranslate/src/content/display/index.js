@@ -5,12 +5,60 @@ import Panel from "./Panel.jsx";
 (async function initialize() {
     // 加载自定义 i18n 语言包
     await initDisplayI18n();
+    // 加载主题
+    await initTheme();
     render(<Panel />, document.documentElement);
     // Prepare this polyfill for the useMeasure hook of "react-use".
     if (!window.ResizeObserver) {
         window.ResizeObserver = (await import("resize-observer-polyfill")).default;
     }
 })();
+
+// Re-render panel when UI language changes
+chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area === "sync" && changes["UILanguage"]) {
+        window.__i18nMessages = null;
+        await initDisplayI18n();
+        render(<Panel />, document.documentElement);
+    }
+});
+
+/**
+ * Apply theme to document.documentElement.dataset.etTheme.
+ */
+function applyTheme(theme) {
+    const root = document.documentElement;
+    if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme:dark)").matches)) {
+        root.dataset.etTheme = "dark";
+    } else {
+        root.dataset.etTheme = "light";
+    }
+}
+
+/**
+ * Load theme from storage and listen for changes.
+ */
+async function initTheme() {
+    const result = await new Promise((resolve) => {
+        chrome.storage.sync.get(["OtherSettings"], resolve);
+    });
+    applyTheme(result.OtherSettings?.Theme || "light");
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "sync" && changes["OtherSettings"]) {
+            applyTheme(changes["OtherSettings"].newValue?.Theme || "light");
+            // Re-render panel so styled-components re-evaluate with
+            // the new CSS variable values (same pattern as UILanguage change).
+            render(<Panel />, document.documentElement);
+        }
+    });
+
+    window.matchMedia("(prefers-color-scheme:dark)").addEventListener("change", () => {
+        chrome.storage.sync.get(["OtherSettings"], (result) => {
+            if (result.OtherSettings?.Theme === "system") applyTheme("system");
+        });
+    });
+}
 
 /**
  * 为翻译结果面板加载自定义 i18n

@@ -12,8 +12,8 @@ scale = 1.3;
     margin: -.15px .6px 0 0;
     vertical-align: text-bottom;
     border-radius: 50%;
-    background-color: #fff;
-    border: (1px * scale) solid #d7d7d7;
+    background-color: var(--et-input-bg, #fff);
+    border: (1px * scale) solid var(--et-border, #d7d7d7);
     &:before
         content: '';
         display: block;
@@ -25,7 +25,7 @@ scale = 1.3;
         opacity: .65
     &:checked
         border: (1px * scale) solid color-primary;
-        background-color: #fff;
+        background-color: var(--et-input-bg, #fff);
         &:before
             height: (8px * scale);
             width: (8px * scale);
@@ -50,8 +50,8 @@ scale = 1.3;
     border-radius: 3px;
     -webkit-transition: background-color .25s;
     transition: background-color .25s;
-    background-color: #fff;
-    border: 1px solid #d7d7d7;
+    background-color: var(--et-input-bg, #fff);
+    border: 1px solid var(--et-border, #d7d7d7);
     &:checked
         background-color: color-primary;
         border-color: color-primary;
@@ -80,11 +80,11 @@ scale = 1.3;
     position: relative;
     width: 41px;
     height: 24px;
-    border: 1px solid #dfdfdf;
+    border: 1px solid var(--et-border, #dfdfdf);
     outline: 0;
     border-radius: 16px;
     box-sizing: border-box;
-    background: #dfdfdf;
+    background: var(--et-border, #dfdfdf);
     &:before
     &:after
         content: " ";
@@ -103,7 +103,7 @@ scale = 1.3;
     &:after
         width: 22px;
         height: 22px;
-        background-color: #fff;
+        background-color: var(--et-input-bg, #fff);
         box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     &:checked
         border-color: color-primary;

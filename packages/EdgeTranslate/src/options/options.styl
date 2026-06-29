@@ -4,7 +4,8 @@ html, body {
     width: 100%;
     padding: 0;
     margin: 0;
-    background-color: #eeeeee;
+    background-color: var(--et-bg, #eeeeee);
+    color: var(--et-text, #222);
 }
 
 #option {
@@ -12,8 +13,8 @@ html, body {
     margin: auto;
     max-width: 840px;
     margin: 0px auto;
-    box-shadow: 0px 0px 50px rgb(200, 200, 200, 0.5);
-    background-color: white;
+    box-shadow: 0px 0px 50px var(--et-border, rgb(200, 200, 200, 0.5));
+    background-color: var(--et-block-bg, white);
 }
 
 header {
@@ -58,6 +59,7 @@ header {
 .setting-title {
     font-size: large;
     font-weight: bold;
+    color: var(--et-text, inherit);
 }
 
 .space {
@@ -68,9 +70,9 @@ header {
 .api-config-section {
     margin: 3% 5%;
     padding: 15px;
-    background: #f9f9f9;
+    background: var(--et-block-bg, #f9f9f9);
     border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--et-border, #e0e0e0);
 }
 
 .api-config-row {
@@ -84,17 +86,19 @@ header {
     min-width: 150px;
     font-size: 14px;
     font-weight: 500;
-    color: #333;
+    color: var(--et-text, #333);
 }
 
 .api-key-input {
     flex: 1;
     padding: 8px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--et-border, #ccc);
     border-radius: 6px;
     font-size: 13px;
     outline: none;
     transition: border-color 0.2s;
+    background-color: var(--et-input-bg, #fff);
+    color: var(--et-text, #333);
 }
 
 .api-key-input:focus {
@@ -105,7 +109,7 @@ header {
 .api-config-hint {
     margin-top: 8px;
     font-size: 12px;
-    color: #888;
+    color: var(--et-muted, #888);
 }
 
 .api-config-link {
@@ -114,7 +118,7 @@ header {
 
 .api-config-divider {
     margin: 15px 0;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--et-border, #e0e0e0);
 }
 
 .api-config-actions {
@@ -125,21 +129,22 @@ header {
 
 .api-btn {
     padding: 6px 16px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--et-border, #ccc);
     border-radius: 6px;
-    background: #f5f5f5;
+    background: var(--et-block-bg, #f5f5f5);
     cursor: pointer;
     font-size: 13px;
     transition: background 0.2s;
+    color: var(--et-text, #333);
 }
 
 .api-btn:hover {
-    background: #e0e0e0;
+    background: var(--et-hover-bg, #e0e0e0);
 }
 
 .ai-config-entry {
-    background: #fafafa;
-    border: 1px solid #e8e8e8;
+    background: var(--et-block-bg, #fafafa);
+    border: 1px solid var(--et-border, #e8e8e8);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 10px;
@@ -155,14 +160,14 @@ header {
 .ai-config-index {
     font-size: 12px;
     font-weight: 600;
-    color: #8c8c8c;
+    color: var(--et-muted, #8c8c8c);
 }
 
 .ai-config-remove {
     border: none;
     background: none;
     font-size: 18px;
-    color: #ccc;
+    color: var(--et-muted, #ccc);
     cursor: pointer;
     padding: 0 4px;
     line-height: 1;
@@ -175,23 +180,32 @@ header {
 .api-add-btn {
     width: 100%;
     padding: 8px;
-    border: 1px dashed #d9d9d9;
+    border: 1px dashed var(--et-border, #d9d9d9);
     border-radius: 6px;
-    background: #fafafa;
+    background: var(--et-block-bg, #fafafa);
     cursor: pointer;
     font-size: 13px;
-    color: #8c8c8c;
+    color: var(--et-muted, #8c8c8c);
     transition: all 0.2s;
 }
 
 .api-add-btn:hover {
     border-color: #667eea;
     color: #667eea;
-    background: #f0f0ff;
+    background: var(--et-hover-bg, #f0f0ff);
+}
+
+header {
+    color: var(--et-accent, color-primary);
 }
 
 footer {
     padding: 5% 0;
     text-align: center;
     font-size: medium;
+    color: var(--et-muted, inherit);
+}
+
+footer a {
+    color: var(--et-accent, #4a8cf7);
 }

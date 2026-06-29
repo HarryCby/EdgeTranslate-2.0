@@ -630,10 +630,12 @@ export default function ResultPanel() {
                               height: document.body.children[0].clientHeight,
                               position: "fixed",
                               zIndex: MaxZIndex,
+                              pointerEvents: "none",  // Let clicks pass through to PDF
                           }
-                        : {}
+                        : { pointerEvents: "none" }
                 }
             >
+                <div style={{ pointerEvents: "auto" }}>
                 <GlobalStyle />
                 <Panel ref={onDisplayStatusChange} displayType={displayType} data-testid="Panel">
                     {
@@ -731,6 +733,7 @@ export default function ResultPanel() {
                         )
                     }
                 </Panel>
+                </div>
                 {highlight.show && (
                     <Highlight
                         style={{
@@ -754,6 +757,33 @@ const PanelBorderRadius = "8px";
 export const ContentWrapperCenterClassName = "simplebar-content-wrapper-center";
 
 const GlobalStyle = createGlobalStyle`
+    /* Theme variables — applied via data-et-theme on <html> */
+    /* Note: :host-context is used because the Panel renders inside a Shadow DOM
+       (react-shadow/styled-components). Inside Shadow DOM there is no <html> element,
+       so we use :host-context to match the Shadow DOM host when its ancestor matches. */
+    :host-context(html[data-et-theme="dark"]) {
+        --et-bg: #1e1e1e;
+        --et-text: #e0e0e0;
+        --et-block-bg: #2d2d2d;
+        --et-border: #444;
+        --et-muted: #999;
+        --et-panel-bg: #2d2d2d;
+        --et-input-bg: #3a3a3a;
+        --et-hover-bg: rgba(255,255,255,0.08);
+        --et-accent: #64b5f6;
+    }
+    :host-context(html[data-et-theme="light"]) {
+        --et-bg: rgba(235, 235, 235, 1);
+        --et-text: #222;
+        --et-block-bg: #fafafa;
+        --et-border: #eee;
+        --et-muted: #8c8c8c;
+        --et-panel-bg: rgba(235, 235, 235, 1);
+        --et-input-bg: #fff;
+        --et-hover-bg: rgba(0,0,0,0.04);
+        --et-accent: #1976d2;
+    }
+
     ${SimpleBarStyle}
 
     /* Fix content disappearing problem. */
@@ -826,7 +856,8 @@ const Panel = styled.div`
     border-radius: ${(props) => (props.displayType === "floating" ? PanelBorderRadius : 0)};
     overflow: visible;
     box-shadow: 0px 8px 12px 5px rgba(0, 0, 0, 0.25);
-    background: rgba(235, 235, 235, 1);
+    background: var(--et-panel-bg);
+    color: var(--et-text);
 
     /* Normalize the style of panel */
     padding: 0;
@@ -834,7 +865,6 @@ const Panel = styled.div`
     border: none;
     font-size: 16px;
     font-weight: normal;
-    color: black;
     line-height: 1;
     -webkit-text-size-adjust: 100%;
     box-sizing: border-box;

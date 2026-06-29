@@ -23,6 +23,9 @@ window.onload = async function () {
     // 加载自定义 i18n 语言包
     await initPopupI18n();
 
+    // 加载主题
+    await initPopupTheme();
+
     let arrowUp = document.getElementById("arrow-up");
     let arrowDown = document.getElementById("arrow-down");
     arrowDown.setAttribute("title", i18nMsg("Unfold"));
@@ -188,6 +191,63 @@ function addEventListener() {
     // });
     document.getElementById("open-settings").addEventListener("click", () => {
         chrome.runtime.openOptionsPage();
+    });
+}
+
+/**
+ * Inject theme CSS variables into the document.
+ */
+function injectPopupThemeCSS() {
+    if (document.getElementById("et-theme-vars")) return;
+    const style = document.createElement("style");
+    style.id = "et-theme-vars";
+    style.textContent = [
+        'html[data-et-theme="dark"] {',
+        "  --et-bg: #1e1e1e; --et-text: #e0e0e0; --et-block-bg: #2d2d2d;",
+        "  --et-border: #444; --et-muted: #999; --et-panel-bg: #2d2d2d;",
+        "  --et-input-bg: #3a3a3a; --et-hover-bg: rgba(255,255,255,0.08); --et-accent: #64b5f6;",
+        "}",
+        'html[data-et-theme="light"] {',
+        "  --et-bg: rgba(235,235,235,1); --et-text: #222; --et-block-bg: #fafafa;",
+        "  --et-border: #eee; --et-muted: #8c8c8c; --et-panel-bg: rgba(235,235,235,1);",
+        "  --et-input-bg: #fff; --et-hover-bg: rgba(0,0,0,0.04); --et-accent: #1976d2;",
+        "}",
+    ].join("\n");
+    document.head.appendChild(style);
+}
+
+/**
+ * Apply theme to the popup page.
+ */
+function applyPopupTheme(theme) {
+    const root = document.documentElement;
+    if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme:dark)").matches)) {
+        root.dataset.etTheme = "dark";
+    } else {
+        root.dataset.etTheme = "light";
+    }
+}
+
+/**
+ * Load theme from storage for the popup.
+ */
+async function initPopupTheme() {
+    injectPopupThemeCSS();
+    const result = await new Promise((resolve) => {
+        chrome.storage.sync.get(["OtherSettings"], resolve);
+    });
+    applyPopupTheme(result.OtherSettings?.Theme || "light");
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "sync" && changes["OtherSettings"]) {
+            applyPopupTheme(changes["OtherSettings"].newValue?.Theme || "light");
+        }
+    });
+
+    window.matchMedia("(prefers-color-scheme:dark)").addEventListener("change", () => {
+        chrome.storage.sync.get(["OtherSettings"], (result) => {
+            if (result.OtherSettings?.Theme === "system") applyPopupTheme("system");
+        });
     });
 }
 

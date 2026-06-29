@@ -119,7 +119,7 @@ export default function Result(props) {
                                 ) : (
                                     <StyledPronounceIcon
                                         role="button"
-                                        onClick={() => setTargetPronounce(true)}
+                                        onClick={() => setTargetPronounce({ start: true, text: props.mainMeaning })}
                                     />
                                 ))}
                             {displayTPronunciation && (
@@ -167,7 +167,19 @@ export default function Result(props) {
                                     })
                                 }
                             />
-                        ) : null}
+                        ) : (
+                            <StyledEditIcon
+                                role="button"
+                                title={window.__i18n("EditText")}
+                                onClick={() =>
+                                    setEditing({
+                                        edit: true,
+                                        element: originalTextElRef.current,
+                                    })
+                                }
+                                style={{ cursor: "pointer" }}
+                            />
+                        )}
                     </TextLine>
                     {/* US pronunciation */}
                     {(displaySPronunciationIcon || displaySPronunciation) && props.sPronunciation && (
@@ -178,7 +190,7 @@ export default function Result(props) {
                                 ) : (
                                     <StyledPronounceIcon
                                         role="button"
-                                        onClick={() => setSourcePronounce(true)}
+                                        onClick={() => setSourcePronounce({ start: true, text: props.originalText })}
                                     />
                                 ))}
                             {displaySPronunciation && (
@@ -200,7 +212,7 @@ export default function Result(props) {
                             ) : (
                                 <StyledPronounceIcon
                                     role="button"
-                                    onClick={() => setSourceUKPronounce(true)}
+                                    onClick={() => setSourceUKPronounce({ start: true, text: props.originalText })}
                                 />
                             )}
                             <PronounceText
@@ -497,10 +509,10 @@ export default function Result(props) {
             channel.on("command", (detail) => {
                 switch (detail.command) {
                     case "pronounce_original":
-                        setSourcePronounce(true);
+                        setSourcePronounce({ start: true, text: props.originalText || window.translateResult?.originalText });
                         break;
                     case "pronounce_translated":
-                        setTargetPronounce(true);
+                        setTargetPronounce({ start: true, text: props.mainMeaning || window.translateResult?.mainMeaning });
                         break;
                     case "copy_result":
                         if (window.translateResult.mainMeaning && translateResultElRef.current) {
@@ -606,31 +618,56 @@ function splitSentences(text) {
  */
 function SegmentViewWithLookup({ originalText, mainMeaning, textDirection, sourceLanguage, targetLanguage }) {
     const [lookupWord, setLookupWord] = useState("");
+    const [lookupResult, setLookupResult] = useState(null);
+    const [lookupLoading, setLookupLoading] = useState(false);
+    const [interleaved, setInterleaved] = useState(false);
+
+    // Fetch word lookup result
+    useEffect(() => {
+        if (!lookupWord) { setLookupResult(null); return; }
+        let cancelled = false;
+        setLookupLoading(true);
+        setLookupResult(null);
+        channel.request("word_lookup", {
+            text: lookupWord,
+            from: sourceLanguage,
+            to: targetLanguage,
+        }).then((data) => {
+            if (cancelled) return;
+            setLookupResult(data?.error ? { error: data.error.message || data.error } : data);
+        }).catch((err) => {
+            if (cancelled) return;
+            setLookupResult({ error: err?.message || String(err) });
+        }).finally(() => {
+            if (!cancelled) setLookupLoading(false);
+        });
+        return () => { cancelled = true; };
+    }, [lookupWord, sourceLanguage, targetLanguage]);
+
+    const handleWordClick = (word) => {
+        setLookupWord(lookupWord === word ? "" : word);
+    };
 
     return (
-        <Fragment>
-            <SegmentView
-                originalText={originalText}
-                mainMeaning={mainMeaning}
-                textDirection={textDirection}
-                onWordClick={(word) => setLookupWord(lookupWord === word ? "" : word)}
-                lookupWord={lookupWord}
-            />
-            {lookupWord && (
-                <WordLookupPanel
-                    word={lookupWord}
-                    sourceLanguage={sourceLanguage}
-                    targetLanguage={targetLanguage}
-                />
-            )}
-        </Fragment>
+        <SegmentView
+            originalText={originalText}
+            mainMeaning={mainMeaning}
+            textDirection={textDirection}
+            onWordClick={handleWordClick}
+            lookupWord={lookupWord}
+            lookupResult={lookupResult}
+            lookupLoading={lookupLoading}
+            interleaved={interleaved}
+            onToggle={() => setInterleaved(!interleaved)}
+        />
     );
 }
 
 /**
  * Long text segment view: two big blocks with sentence-level bidirectional hover/click highlight.
+ * When interleaved is true, shows sentences alternately: source → target → source → ...
  */
-function SegmentView({ originalText, mainMeaning, textDirection, onWordClick, lookupWord }) {
+function SegmentView({ originalText, mainMeaning, textDirection, onWordClick, lookupWord, lookupResult, lookupLoading, interleaved, onToggle }) {
     const [pinnedIndex, setPinnedIndex] = useState(-1);
     const [hoverIndex, setHoverIndex] = useState(-1);
 
@@ -658,10 +695,88 @@ function SegmentView({ originalText, mainMeaning, textDirection, onWordClick, lo
                 </WordSpan>
             );
         });
+    }; // <-- This was missing a closing brace/semicolon in the flow
+
+    // Check if a sentence contains the looked-up word
+    const sentenceContainsWord = (text) => {
+        if (!lookupWord) return false;
+        return text.toLowerCase().includes(lookupWord.toLowerCase());
     };
+
+    // Shared header row with toggle button
+    const renderHeader = () => (
+        <SegmentHeader>
+            <span style={{ fontSize: 12, color: "var(--et-muted)", fontWeight: 500 }}>
+                {interleaved ? window.__i18n("InterleavedView") : window.__i18n("ParallelView")}
+            </span>
+            <SegmentToggle onClick={onToggle}>
+                {interleaved ? window.__i18n("SwitchToParallel") : window.__i18n("SwitchToInterleaved")}
+            </SegmentToggle>
+        </SegmentHeader>
+    );
+
+    // Shared lookup result rendering (used in both modes)
+    const renderLookupResult = (sentence) => {
+        if (!lookupWord || !sentenceContainsWord(sentence)) return null;
+        if (lookupLoading) {
+            return <LookupInline>{window.__i18n("LookupPrefix")} "{lookupWord}"...</LookupInline>;
+        }
+        if (!lookupResult) return null;
+        if (lookupResult.error) {
+            return <LookupInline>{window.__i18n("LookupFailed")}: {lookupResult.error}</LookupInline>;
+        }
+        return (
+            <LookupInline>
+                <Result {...lookupResult} />
+            </LookupInline>
+        );
+    };
+
+    if (interleaved) {
+        // Interleaved mode: each sentence pair (source + target) stacked vertically
+        const pairs = [];
+        for (let i = 0; i < maxLen; i++) {
+            const src = srcSentences[i] || "";
+            const tgt = tgtSentences[i] || "";
+            pairs.push({ src, tgt, idx: i });
+        }
+        return (
+            <SegmentContainer>
+                {renderHeader()}
+                {pairs.map((p) => (
+                    <SegmentPair key={p.idx}>
+                        <SegmentLabel>原文</SegmentLabel>
+                        <SegmentSpan
+                            active={p.idx === activeIdx}
+                            onMouseEnter={() => setHoverIndex(p.idx)}
+                            onMouseLeave={() => setHoverIndex(-1)}
+                            onClick={() => setPinnedIndex(pinnedIndex === p.idx ? -1 : p.idx)}
+                        >
+                            {renderWords(p.src, true)}
+                        </SegmentSpan>
+                        {p.tgt && (
+                            <>
+                                <SegmentLabel>译文</SegmentLabel>
+                                <SegmentSpan
+                                    active={p.idx === activeIdx}
+                                    onMouseEnter={() => setHoverIndex(p.idx)}
+                                    onMouseLeave={() => setHoverIndex(-1)}
+                                    onClick={() => setPinnedIndex(pinnedIndex === p.idx ? -1 : p.idx)}
+                                >
+                                    {renderWords(p.tgt, false)}
+                                </SegmentSpan>
+                            </>
+                        )}
+                        {renderLookupResult(p.src)}
+                    </SegmentPair>
+                ))}
+            </SegmentContainer>
+        );
+    }
 
     return (
         <SegmentContainer>
+            {renderHeader()}
             <SegmentBlock label="译文" textDirection={textDirection}>
                 {tgtSentences.map((s, i) => (
                     <SegmentSpan
@@ -693,6 +808,14 @@ function SegmentView({ originalText, mainMeaning, textDirection, onWordClick, lo
                 {srcSentences.length < maxLen && Array.from({ length: maxLen - srcSentences.length }).map((_, i) => (
                     <SegmentSpan key={`spad-${i}`} active={false} />
                 ))}
+                {/* In parallel mode, show lookup result below both blocks */}
+                {lookupWord && lookupLoading && <LookupInline>查询 "{lookupWord}" 中...</LookupInline>}
+                {lookupResult && !lookupResult.error && !lookupLoading && (
+                    <LookupInline><Result {...lookupResult} /></LookupInline>
+                )}
+                {lookupResult?.error && !lookupLoading && (
+                    <LookupInline>查询失败: {lookupResult.error}</LookupInline>
+                )}
             </SegmentBlock>
         </SegmentContainer>
     );
@@ -736,124 +859,9 @@ function WordLookupPanel({ word, sourceLanguage, targetLanguage }) {
         return <LookupPanel><LookupError>查询失败: {result.error}</LookupError></LookupPanel>;
     }
 
-    // Group detailed meanings by POS (same logic as main Result)
-    const groupedMeanings = groupMeaningsByPOS(result.detailedMeanings);
-    const [expandedSynonyms, setExpandedSynonyms] = useState({});
-    const [showDetails, setShowDetails] = useState(false);
-    const hasDetails = groupedMeanings.length > 0 || result.definitions?.length > 0 || result.examples?.length > 0;
-
-    return (
-        <Fragment>
-            <LookupPanel>
-                {/* Compact preview line — always visible, click to expand */}
-                <LookupPreview onClick={() => hasDetails && setShowDetails(!showDetails)} expandable={hasDetails}>
-                    <LookupWord>{result.originalText || word}</LookupWord>
-                    {(result.sPronunciation || result.tPronunciation) && (
-                        <LookupPhonetic>
-                            {result.sPronunciation && <span>US {result.sPronunciation}</span>}
-                            {result.tPronunciation && <span>  UK {result.tPronunciation}</span>}
-                        </LookupPhonetic>
-                    )}
-                    {result.mainMeaning && <LookupMain>{result.mainMeaning}</LookupMain>}
-                    {hasDetails && <ExpandHint>{showDetails ? "收起 ▲" : "展开 ▼"}</ExpandHint>}
-                </LookupPreview>
-            </LookupPanel>
-
-            {showDetails && (
-                <Fragment>
-
-            {/* Detailed Meanings — same format as main Result */}
-            {groupedMeanings.length > 0 && (
-                <Detail>
-                    <BlockHead>
-                        <DetailHeadSpot />
-                        <BlockHeadTitle>{window.__i18n("DetailedMeanings")}</BlockHeadTitle>
-                        <BlockSplitLine />
-                    </BlockHead>
-                    <BlockContent DrawerHeight={BlockContentDrawerHeight} DisableDrawer>
-                        {groupedMeanings.map((group, groupIndex) => (
-                            <POSGroup key={`lkp-pos-${groupIndex}`}>
-                                <POSRow>
-                                    <POSTag>{group.pos}</POSTag>
-                                    <MeaningText>{group.meanings.join("，")}</MeaningText>
-                                </POSRow>
-                                {group.synonyms.length > 0 && (
-                                    <SynonymSection>
-                                        <SynonymToggle onClick={() =>
-                                            setExpandedSynonyms((prev) => ({ ...prev, [groupIndex]: !prev[groupIndex] }))
-                                        }>
-                                            {expandedSynonyms[groupIndex] ? "收起" : `展开 ${group.synonyms.length} 个同义词`}
-                                            <ArrowIcon expanded={!!expandedSynonyms[groupIndex]} />
-                                        </SynonymToggle>
-                                        {expandedSynonyms[groupIndex] && (
-                                            <SynonymLine>
-                                                {group.synonyms.map((syn, si) => (
-                                                    <SynonymWord key={`lkp-syn-${groupIndex}-${si}`}>{syn}</SynonymWord>
-                                                ))}
-                                            </SynonymLine>
-                                        )}
-                                    </SynonymSection>
-                                )}
-                            </POSGroup>
-                        ))}
-                    </BlockContent>
-                </Detail>
-            )}
-
-            {/* Definitions — same format as main Result */}
-            {result.definitions?.length > 0 && (
-                <Definition>
-                    <BlockHead>
-                        <DefinitionHeadSpot />
-                        <BlockHeadTitle>{window.__i18n("Definitions")}</BlockHeadTitle>
-                        <BlockSplitLine />
-                    </BlockHead>
-                    <BlockContent DrawerHeight={BlockContentDrawerHeight} DisableDrawer>
-                        {result.definitions.map((def, i) => (
-                            <Fragment key={`lkp-def-${i}`}>
-                                <Position>{def.pos}</Position>
-                                <DetailMeaning>{def.meaning}</DetailMeaning>
-                                {def.example && <DefinitionExample>{`"${def.example}"`}</DefinitionExample>}
-                                {def.synonyms?.length > 0 && (
-                                    <Fragment>
-                                        <SynonymTitle>{window.__i18n("Synonyms")}</SynonymTitle>
-                                        <SynonymLine>
-                                            {def.synonyms.map((syn, si) => (
-                                                <SynonymWord key={`lkp-defsyn-${si}`}>{syn}</SynonymWord>
-                                            ))}
-                                        </SynonymLine>
-                                    </Fragment>
-                                )}
-                            </Fragment>
-                        ))}
-                    </BlockContent>
-                </Definition>
-            )}
-
-            {/* Examples — same format as main Result */}
-            {result.examples?.length > 0 && (
-                <Example>
-                    <BlockHead>
-                        <ExampleHeadSpot />
-                        <BlockHeadTitle>{window.__i18n("Examples")}</BlockHeadTitle>
-                        <BlockSplitLine />
-                    </BlockHead>
-                    <BlockContent DrawerHeight={BlockContentDrawerHeight} DisableDrawer>
-                        <ExampleList>
-                            {result.examples.map((ex, i) => (
-                                <ExampleItem key={`lkp-ex-${i}`}>
-                                    {ex.source && <ExampleSource dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ex.source, { ALLOWED_TAGS: ["b"] }) }} />}
-                                    {ex.target && <ExampleTarget dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ex.target, { ALLOWED_TAGS: ["b"] }) }} />}
-                                </ExampleItem>
-                            ))}
-                        </ExampleList>
-                    </BlockContent>
-                </Example>
-            )}
-            </Fragment>
-            )}
-        </Fragment>
-    );
+    // Use the full Result component (same as main translation) so lookup
+    // results get proper pronunciation buttons, phonetics layout, etc.
+    return <Result {...result} />;
 }
 
 /**
@@ -914,7 +922,7 @@ export const Block = styled.div`
     padding: ${BlockPadding};
     margin: ${BlockMargin};
     margin-top: 0;
-    background-color: rgb(250, 250, 250);
+    background-color: var(--et-block-bg);
     border-radius: 10px;
     /* box-shadow: 0px 3px 6px rgba(127, 127, 127, 0.25); */
     line-height: 120%;
@@ -1105,8 +1113,8 @@ const POSTag = styled.span`
     display: inline-block;
     font-size: 11px;
     font-weight: 500;
-    color: #8c8c8c;
-    background: #f5f5f5;
+    color: var(--et-muted);
+    background: var(--et-block-bg);
     padding: 2px 6px;
     border-radius: 2px;
     letter-spacing: 0.03em;
@@ -1116,7 +1124,7 @@ const POSTag = styled.span`
 
 const MeaningText = styled.span`
     font-size: 14px;
-    color: #262626;
+    color: var(--et-text);
     line-height: 1.6;
 `;
 
@@ -1130,11 +1138,11 @@ const SynonymToggle = styled.span`
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    color: #1890ff;
+    color: var(--et-accent);
     cursor: pointer;
     user-select: none;
     &:hover {
-        color: #40a9ff;
+        color: var(--et-accent);
     }
 `;
 
@@ -1144,7 +1152,7 @@ const ArrowIcon = styled.span`
     height: 0;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
-    border-top: 5px solid #1890ff;
+    border-top: 5px solid var(--et-accent);
     transition: transform 0.2s;
     ${(props) => (props.expanded ? "transform: rotate(180deg);" : "")}
 `;
@@ -1158,14 +1166,14 @@ const SynonymLine = styled.div`
 
 const SynonymWord = styled.span`
     font-size: 12px;
-    color: #595959;
-    background: #fafafa;
+    color: var(--et-muted);
+    background: var(--et-block-bg);
     padding: 2px 8px;
     border-radius: 2px;
     cursor: default;
     transition: background 0.15s;
     &:hover {
-        background: #f0f0f0;
+        background: var(--et-hover-bg);
     }
 `;
 
@@ -1176,7 +1184,7 @@ const DefinitionHeadSpot = styled(BlockHeadSpot)`
 `;
 
 const DefinitionExample = styled(DetailMeaning)`
-    color: #5f6368;
+    color: var(--et-muted);
 `;
 
 const AIContextBlock = styled(Block)``;
@@ -1187,14 +1195,14 @@ const AIContextSpot = styled(BlockHeadSpot)`
 
 const AIContextText = styled.div`
     font-size: 14px;
-    color: #262626;
+    color: var(--et-text);
     line-height: 1.6;
     padding: 4px 0;
 `;
 
 const AILoading = styled.div`
     font-size: 13px;
-    color: #8c8c8c;
+    color: var(--et-muted);
     padding: 8px 0;
 `;
 
@@ -1205,11 +1213,11 @@ const AIError = styled.div`
 `;
 
 const AIContextRetry = styled.span`
-    color: #1890ff;
+    color: var(--et-accent);
     cursor: pointer;
     margin-left: 8px;
     font-size: 12px;
-    &:hover { color: #40a9ff; }
+    &:hover { color: var(--et-accent); }
 `;
 
 const AIContextSource = styled.div`
@@ -1218,20 +1226,20 @@ const AIContextSource = styled.div`
 
 const AIContextSourceToggle = styled.span`
     font-size: 11px;
-    color: #8c8c8c;
+    color: var(--et-muted);
     cursor: pointer;
     user-select: none;
-    &:hover { color: #595959; }
+    &:hover { color: var(--et-text); }
 `;
 
 const AIContextSourceText = styled.div`
     margin-top: 4px;
     padding: 8px;
-    background: #fafafa;
-    border: 1px solid #f0f0f0;
+    background: var(--et-block-bg);
+    border: 1px solid var(--et-border);
     border-radius: 4px;
     font-size: 12px;
-    color: #8c8c8c;
+    color: var(--et-muted);
     line-height: 1.5;
     max-height: 120px;
     overflow-y: auto;
@@ -1252,14 +1260,14 @@ const AITriggerIcon = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #667eea;
+    border: 1px solid var(--et-accent);
     border-radius: 50%;
     font-size: 10px;
     font-weight: 700;
-    color: #667eea;
+    color: var(--et-accent);
     transition: all 0.2s;
     &:hover {
-        background: #667eea;
+        background: var(--et-accent);
         color: #fff;
     }
     &::before {
@@ -1306,10 +1314,65 @@ const SegmentContainer = styled.div`
     gap: 12px;
 `;
 
+const SegmentToggle = styled.button`
+    padding: 2px 8px;
+    border: 1px solid var(--et-border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--et-muted);
+    font-size: 11px;
+    line-height: 1.6;
+    cursor: pointer;
+    transition: all 0.15s;
+    outline: none;
+    &:hover {
+        border-color: var(--et-accent);
+        color: var(--et-accent);
+        background: var(--et-hover-bg);
+    }
+`;
+
+const SegmentHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;
+`;
+
+const SegmentPair = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: var(--et-block-bg);
+    border-radius: 8px;
+    line-height: 1.8;
+    font-size: 14px;
+    user-select: none;
+    cursor: default;
+    &:last-child { border-bottom: none; }
+`;
+
+const SegmentLabel = styled.span`
+    font-size: 11px;
+    color: var(--et-muted);
+    font-weight: 500;
+    margin-bottom: 2px;
+`;
+
+const LookupInline = styled.div`
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--et-block-bg);
+    border-radius: 6px;
+    border: 1px solid var(--et-border);
+    font-size: 13px;
+`;
+
 const SegmentBlock = styled.div`
     padding: 10px 12px;
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--et-block-bg);
     line-height: 1.8;
     font-size: 14px;
     user-select: none;
@@ -1318,7 +1381,7 @@ const SegmentBlock = styled.div`
         content: "${(props) => props.label || ''}";
         display: block;
         font-size: 11px;
-        color: #8c8c8c;
+        color: var(--et-muted);
         margin-bottom: 6px;
         font-weight: 500;
     }
@@ -1330,7 +1393,7 @@ const SegmentSpan = styled.span`
     padding: 1px 2px;
     transition: background 0.12s, color 0.12s;
     background: ${(props) => (props.active ? "rgba(255, 235, 59, 0.5)" : "transparent")};
-    color: ${(props) => (props.active ? "#1565c0" : "inherit")};
+    color: ${(props) => (props.active ? "var(--et-accent)" : "inherit")};
     &:hover {
         background: rgba(255, 235, 59, 0.35);
     }
@@ -1352,13 +1415,13 @@ const WordSpan = styled.span`
 const LookupPanel = styled.div`
     margin-top: 12px;
     border-radius: 8px;
-    background: #f5f8ff;
+    background: var(--et-hover-bg);
     border: 1px solid #e3edf7;
     overflow: hidden;
 `;
 
 const LookupLoading = styled.div`
-    color: #8c8c8c;
+    color: var(--et-muted);
     font-size: 13px;
     padding: 10px 14px;
 `;
@@ -1389,7 +1452,7 @@ const LookupWord = styled.span`
 
 const LookupPhonetic = styled.span`
     font-size: 12px;
-    color: #8c8c8c;
+    color: var(--et-muted);
 `;
 
 const LookupMain = styled.span`
@@ -1404,12 +1467,13 @@ const ExpandHint = styled.span`
 `;
 
 const ErrorBanner = styled.div`
-    background: #fff3f3;
-    color: #d32f2f;
+    background: var(--et-block-bg);
+    color: var(--et-accent);
     font-size: 12px;
     padding: 6px 10px;
     border-radius: 4px;
     margin-bottom: 8px;
+    border: 1px solid var(--et-border);
     line-height: 1.5;
 `;
 
@@ -1424,7 +1488,7 @@ function sourcePronounce(_, startPronounce) {
         channel
             .request("pronounce", {
                 pronouncing: "source",
-                text: window.translateResult.originalText,
+                text: startPronounce.text || window.translateResult.originalText,
                 language: window.translateResult.sourceLanguage,
                 speed: sourceTTSSpeed,
             })
@@ -1447,7 +1511,7 @@ function sourceUKPronounce(_, startPronounce) {
         channel
             .request("pronounce", {
                 pronouncing: "sourceUK",
-                text: window.translateResult.originalText,
+                text: startPronounce.text || window.translateResult.originalText,
                 language: window.translateResult.sourceLanguage,
                 speed: sourceUKTTSSpeed,
             })
@@ -1465,7 +1529,7 @@ function targetPronounce(_, startPronounce) {
         channel
             .request("pronounce", {
                 pronouncing: "target",
-                text: window.translateResult.mainMeaning,
+                text: startPronounce.text || window.translateResult.mainMeaning,
                 language: window.translateResult.targetLanguage,
                 speed: targetTTSSpeed,
             })

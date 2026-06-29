@@ -18,6 +18,9 @@ window.onload = async () => {
     // 初始化界面语言选择器
     initUILanguage();
 
+    // 初始化主题
+    await initTheme();
+
     // 设置不同语言的隐私政策链接
     let PrivacyPolicyLink = document.getElementById("PrivacyPolicyLink");
     PrivacyPolicyLink.setAttribute("href", i18nMsg("PrivacyPolicyLink"));
@@ -55,9 +58,17 @@ window.onload = async () => {
      */
     getOrSetDefaultSettings(undefined, DEFAULT_SETTINGS).then((result) => {
         let inputElements = document.getElementsByTagName("input");
+        let selectElements = document.getElementsByTagName("select");
         const selectTranslatePositionElement = document.getElementById("select-translate-position");
-        for (let element of [...inputElements, selectTranslatePositionElement]) {
-            let settingItemPath = element.getAttribute("setting-path").split(/\s/g);
+        console.log('[ET-settings] init loop: inputs=' + inputElements.length + ' selects=' + selectElements.length);
+        for (let element of [...inputElements, ...selectElements, selectTranslatePositionElement]) {
+            let settingPathAttr = element.getAttribute("setting-path");
+            console.log('[ET-settings] processing:', element.id || '(no id)', 'tag:', element.tagName, 'setting-path:', settingPathAttr);
+            if (!settingPathAttr) {
+                console.log('[ET-settings] SKIP (no setting-path):', element.id || element.className);
+                continue;
+            }
+            let settingItemPath = settingPathAttr.split(/\s/g);
             let settingItemValue = getSetting(result, settingItemPath);
 
             switch (element.getAttribute("setting-type")) {
@@ -103,11 +114,19 @@ window.onload = async () => {
                     element.onchange = (event) => {
                         const target = event.target;
                         const settingItemPath = target.getAttribute("setting-path").split(/\s/g);
-                        saveOption(
-                            result,
-                            settingItemPath,
-                            target.options[target.selectedIndex].value
-                        );
+                        const newValue = target.options[target.selectedIndex].value;
+                        console.log('[ET-settings] select changed:', target.id, '->', newValue, 'path:', settingItemPath);
+                        saveOption(result, settingItemPath, newValue);
+                        // Apply theme immediately for the theme select — don't
+                        // rely solely on the async chrome.storage.onChanged listener.
+                        if (
+                            settingItemPath.length === 2 &&
+                            settingItemPath[0] === "OtherSettings" &&
+                            settingItemPath[1] === "Theme"
+                        ) {
+                            console.log('[ET-theme] select onchange -> direct applyTheme call');
+                            applyTheme(newValue);
+                        }
                     };
                     break;
                 default:
@@ -422,6 +441,7 @@ function initUILanguage() {
  * @param {*} value 设置项的值
  */
 function saveOption(localSettings, settingItemPath, value) {
+    console.log('[ET-settings] saveOption:', settingItemPath.join('.'), '=', value);
     // update local settings
     let pointer = localSettings; // point to children of local setting or itself
 
@@ -435,4 +455,78 @@ function saveOption(localSettings, settingItemPath, value) {
     let result = {};
     result[settingItemPath[0]] = localSettings[settingItemPath[0]];
     chrome.storage.sync.set(result);
+}
+
+/**
+ * Inject theme CSS variables into the document so options/popup pages
+ * can use var(--et-*) without relying on Panel.jsx's GlobalStyle.
+ */
+function injectThemeCSS() {
+    const style = document.createElement("style");
+    style.id = "et-theme-vars";
+    style.textContent = `
+html[data-et-theme="dark"] {
+    --et-bg: #1e1e1e;
+    --et-text: #e0e0e0;
+    --et-block-bg: #2d2d2d;
+    --et-border: #444;
+    --et-muted: #999;
+    --et-panel-bg: #2d2d2d;
+    --et-input-bg: #3a3a3a;
+    --et-hover-bg: rgba(255,255,255,0.08);
+    --et-accent: #64b5f6;
+}
+html[data-et-theme="light"] {
+    --et-bg: rgba(235, 235, 235, 1);
+    --et-text: #222;
+    --et-block-bg: #fafafa;
+    --et-border: #eee;
+    --et-muted: #8c8c8c;
+    --et-panel-bg: rgba(235, 235, 235, 1);
+    --et-input-bg: #fff;
+    --et-hover-bg: rgba(0,0,0,0.04);
+    --et-accent: #1976d2;
+}
+`;
+    document.head.appendChild(style);
+}
+
+/**
+ * Apply theme to the options page.
+ */
+function applyTheme(theme) {
+    console.log('[ET-theme] applyTheme called with:', theme);
+    const root = document.documentElement;
+    if (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme:dark)").matches)) {
+        root.dataset.etTheme = "dark";
+        console.log('[ET-theme] set data-et-theme to: dark');
+    } else {
+        root.dataset.etTheme = "light";
+        console.log('[ET-theme] set data-et-theme to: light');
+    }
+}
+
+/**
+ * Load theme from storage and listen for changes (options page).
+ */
+async function initTheme() {
+    injectThemeCSS();
+    const result = await new Promise((resolve) => {
+        chrome.storage.sync.get(["OtherSettings"], resolve);
+    });
+    applyTheme(result.OtherSettings?.Theme || "light");
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+        console.log('[ET-theme] storage.onChanged fired, area:', area, 'changes keys:', Object.keys(changes));
+        if (area === "sync" && changes["OtherSettings"]) {
+            console.log('[ET-theme] storage.onChanged -> applyTheme with:', changes["OtherSettings"].newValue?.Theme);
+            applyTheme(changes["OtherSettings"].newValue?.Theme || "light");
+        }
+    });
+
+    window.matchMedia("(prefers-color-scheme:dark)").addEventListener("change", () => {
+        chrome.storage.sync.get(["OtherSettings"], (result) => {
+            if (result.OtherSettings?.Theme === "system") applyTheme("system");
+        });
+    });
 }
